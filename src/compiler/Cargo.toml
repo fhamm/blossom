@@ -1,0 +1,12 @@
+[package]
+name = "blossom-compiler"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+pest = "2.0"
+pest_derive = "2.0"
+blossom-config = { path = "../config" }
+
+[lib]
+path = "./lib.rs"

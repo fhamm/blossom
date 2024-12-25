@@ -1,0 +1,10 @@
+[package]
+name = "my-blossom-project"
+version = "0.1.0"
+author = "John Doe"
+url = "https://github.com/johndoe/my-blossom-project"
+
+[project]
+root = "src"
+output = "dist"
+entry = "src/main.bsm"

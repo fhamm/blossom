@@ -1,0 +1,13 @@
+[package]
+name = "blossom-cli"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+clap = { version = "4.4", features = ["derive"] }
+blossom-compiler = { path = "../compiler" }
+blossom-config = { path = "../config" }
+
+[[bin]]
+name = "blossom"
+path = "./main.rs"
