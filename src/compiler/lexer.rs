@@ -43,14 +43,8 @@ impl<'a> Lexer<'a> {
         }
     }
 
-    // fn peek(&mut self) -> char {
-    //     self.input.peek().copied().unwrap_or('\0')
-    // }
-
-    fn skip_whitespace(&mut self) {
-        while self.current.is_whitespace() && self.current != '\n' {
-            self.advance();
-        }
+    fn peek(&mut self) -> char {
+        self.input.peek().copied().unwrap_or('\0')
     }
 
     fn read_identifier(&mut self) -> String {
@@ -128,8 +122,44 @@ impl<'a> Lexer<'a> {
         Ok(tokens)
     }
 
+    fn read_binary(&mut self) -> Token {
+        let mut bytes = Vec::new();
+        self.advance(); // Skip first
+        self.advance(); // Skip second
+
+        while !(self.current == '>' && self.peek() == '>') {
+            if self.current.is_whitespace() {
+                self.advance();
+                continue;
+            }
+
+            if self.current == '0' && self.peek().to_ascii_lowercase() == 'x' {
+                self.advance(); // Skip 0
+                self.advance(); // Skip x
+                let mut hex = String::new();
+                while self.current.is_ascii_hexdigit() {
+                    hex.push(self.current);
+                    self.advance();
+                }
+                if let Ok(byte) = u8::from_str_radix(&hex, 16) {
+                    bytes.push(byte);
+                }
+            }
+
+            if self.current == '\0' {
+                return Token::Error("Unterminated binary literal".to_string());
+            }
+            self.advance();
+        }
+
+        self.advance(); // Skip first >
+        self.advance(); // Skip second >
+
+        Token::BinaryLiteral(bytes)
+    }
+
     pub fn next_token(&mut self) -> Result<TokenWithLocation, LexError> {
-        self.skip_whitespace();
+        self.skip_whitespace_and_comments();
         let location = Location {
             line: self.location.line,
             column: self.location.column,
@@ -157,11 +187,21 @@ impl<'a> Lexer<'a> {
             }
             '*' => {
                 self.advance();
-                Token::Multiply
+                if self.current == '/' {
+                    self.advance();
+                    Token::CommentEnd
+                } else {
+                    Token::Multiply
+                }
             }
             '/' => {
                 self.advance();
-                Token::Divide
+                if self.current == '*' {
+                    self.advance();
+                    Token::CommentStart
+                } else {
+                    Token::Divide
+                }
             }
             '%' => {
                 self.advance();
@@ -178,15 +218,25 @@ impl<'a> Lexer<'a> {
             }
             '|' => {
                 self.advance();
-                Token::Or
+                if self.current == '>' {
+                    self.advance();
+                    Token::Pipe
+                } else {
+                    Token::Or
+                }
             }
             '!' => {
                 self.advance();
-                if self.current == '=' {
-                    self.advance();
-                    Token::NotEquals
-                } else {
-                    Token::Not
+                match self.current {
+                    '=' => {
+                        self.advance();
+                        Token::NotEquals
+                    }
+                    '>' => {
+                        self.advance();
+                        Token::ErrorPipe
+                    }
+                    _ => Token::Not,
                 }
             }
             '=' => {
@@ -212,6 +262,8 @@ impl<'a> Lexer<'a> {
                 if self.current == '=' {
                     self.advance();
                     Token::LessEquals
+                } else if self.current == '<' {
+                    self.read_binary()
                 } else {
                     Token::LessThan
                 }
@@ -219,11 +271,11 @@ impl<'a> Lexer<'a> {
 
             '(' => {
                 self.advance();
-                Token::LeftParen
+                Token::LeftParenthesis
             }
             ')' => {
                 self.advance();
-                Token::RightParen
+                Token::RightParenthesis
             }
             '{' => {
                 self.advance();
@@ -259,19 +311,46 @@ impl<'a> Lexer<'a> {
                 self.advance();
                 Token::Colon
             }
+            '.' => {
+                self.advance();
+                if self.current == '.' {
+                    self.advance();
+                    if self.current == '.' {
+                        self.advance();
+                        Token::Spread
+                    } else {
+                        return Err(LexError::InvalidOperator);
+                    }
+                } else {
+                    return Err(LexError::InvalidOperator);
+                }
+            }
 
             '"' => self.read_string(),
 
             c if c.is_digit(10) => self.read_number(),
 
+            '@' => {
+                self.advance();
+                let identifier = self.read_identifier();
+                match identifier.as_str() {
+                    // Annotations
+                    "Module" => Token::Module,
+                    "Public" => Token::Public,
+                    "Private" => Token::Private,
+                    "Import" => Token::Import,
+                    "Using" => Token::Using,
+                    "Pure" => Token::Pure,
+                    "Impure" => Token::Impure,
+                    _ => Token::Error(format!("Unknown annotation @{}", identifier)),
+                }
+            }
+
             c if c.is_alphabetic() || c == '_' => {
                 let identifier = self.read_identifier();
                 match identifier.as_str() {
                     // Keywords
-                    "module" => Token::Module,
-                    "public" => Token::Public,
-                    "private" => Token::Private,
-                    "import" => Token::Import,
+                    "as" => Token::As,
                     "match" => Token::Match,
                     "throw" => Token::Throw,
 
@@ -301,5 +380,35 @@ impl<'a> Lexer<'a> {
         };
 
         Ok(TokenWithLocation { token, location })
+    }
+
+    fn skip_whitespace(&mut self) {
+        while self.current.is_whitespace() {
+            if self.current == '\n' {
+                break;
+            }
+            self.advance();
+        }
+    }
+
+    fn skip_whitespace_and_comments(&mut self) {
+        loop {
+            self.skip_whitespace();
+            if self.current == '/' && self.peek() == '*' {
+                self.advance(); // Skip '/'
+                self.advance(); // Skip '*'
+
+                while !(self.current == '*' && self.peek() == '/') {
+                    if self.current == '\0' {
+                        return;
+                    }
+                    self.advance();
+                }
+                self.advance(); // Skip '*'
+                self.advance(); // Skip '/'
+            } else {
+                break;
+            }
+        }
     }
 }

@@ -2,19 +2,21 @@ use super::common::Location;
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
-    // Annotations
-    Module,  // @Module
-    Public,  // @Public
-    Private, // @Private
-    Import,  // @Import
-    Pure,    // @Pure
-    Impure,  // @Impure
+    // Existing annotations
+    Module,
+    Public,
+    Private,
+    Import,
+    Pure,
+    Impure,
+    Using,
+    As,
 
-    // Keywords
-    Match, // match
-    Throw, // throw
+    // Existing keywords
+    Match,
+    Throw,
 
-    // Types
+    // Existing types
     Integer,
     Float,
     String,
@@ -24,7 +26,7 @@ pub enum Token {
     Optional,
     List,
 
-    // Literals
+    // Existing literals
     IntegerLiteral(String),
     FloatLiteral(String),
     StringLiteral(String),
@@ -35,53 +37,53 @@ pub enum Token {
     Identifier(String),
 
     // Arithmetic operators
-    Plus,     // +
-    Minus,    // -
-    Multiply, // *
-    Divide,   // /
-    Modulo,   // %
+    Plus,
+    Minus,
+    Multiply,
+    Divide,
+    Modulo,
 
-    // Boolean operators
-    And,           // &
+    // Boolean/Type operators
+    And,           // & (both logical AND and type constraints)
     Or,            // |
     Not,           // !
     Equals,        // ==
     NotEquals,     // !=
     GreaterThan,   // >
-    LessThan,      // <
+    LessThan,      //
     GreaterEquals, // >=
     LessEquals,    // <=
 
     // Functional operators
-    Arrow,  // ->
-    Spread, // ...
-    Pipe,   // |>
+    Arrow,     // ->
+    Spread,    // ...
+    Pipe,      // |>
+    ErrorPipe, // !>
 
-    // Delimiters
-    LeftParen,    // (
-    RightParen,   // )
-    LeftBrace,    // {
-    RightBrace,   // }
-    LeftBracket,  // [
-    RightBracket, // ]
-    Comma,        // ,
-    Colon,        // :
-    Backslash,    // \
+    // Comment delimiters
+    CommentStart, // /*
+    CommentEnd,   // */
+
+    // Existing delimiters
+    LeftParenthesis,
+    RightParenthesis,
+    LeftBrace,
+    RightBrace,
+    LeftBracket,
+    RightBracket,
+    Comma,
+    Colon,
+    Backslash,
 
     // Template
-    TemplateStart, // {{
-    TemplateEnd,   // }}
+    TemplateStart,
+    TemplateEnd,
 
     // Special
     Newline,
     EOF,
     Error(String),
 }
-
-// pub struct Token {
-//     pub kind: TokenKind,
-//     pub lexeme: String,
-// }
 
 #[derive(Debug, PartialEq, Clone)]
 pub struct TokenWithLocation {

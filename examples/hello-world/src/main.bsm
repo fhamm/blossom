@@ -1,0 +1,5 @@
+@Using Standard
+
+Main() -> {
+    PrintLine("Hello World!")
+}

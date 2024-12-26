@@ -3,6 +3,8 @@ use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
 
+use crate::constants::BLOSSOM_CONFIG_FILE;
+
 #[derive(Deserialize, Debug)]
 pub struct BlossomConfig {
     pub package: PackageConfig,
@@ -34,17 +36,17 @@ pub struct ProjectConfig {
 
 impl BlossomConfig {
     pub fn load(directory: &Path) -> Result<Self, String> {
-        let config_path = directory.join("blossom.toml");
+        let config_path = directory.join(BLOSSOM_CONFIG_FILE);
         if !config_path.exists() {
             return Err(format!(
-                "No blossom.toml file found in {}",
+                "No configuration file found in {}",
                 directory.display()
             ));
         }
 
         let content = fs::read_to_string(&config_path)
-            .map_err(|e| format!("Failed to read blossom.toml file: {}", e))?;
+            .map_err(|e| format!("Failed to read configuration file: {}", e))?;
 
-        toml::from_str(&content).map_err(|e| format!("Failed to parse blossom.toml file: {}", e))
+        toml::from_str(&content).map_err(|e| format!("Failed to parse configuration file: {}", e))
     }
 }
