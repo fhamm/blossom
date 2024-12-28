@@ -1,14 +1,12 @@
 use crate::finder::SourceFinder;
-use crate::lexer::Lexer;
 use blossom_config::BlossomConfig;
 use std::path::PathBuf;
 
-mod common;
 mod constants;
 mod finder;
-mod lexer;
 mod parser;
-mod token;
+
+use parser::parse;
 
 pub struct Compiler {
     config: BlossomConfig,
@@ -30,15 +28,20 @@ impl Compiler {
     }
 
     fn compile_file(&self, path: &PathBuf) -> Result<(), String> {
-        let content = std::fs::read_to_string(path)
+        let source_code = std::fs::read_to_string(path)
             .map_err(|e| format!("Failed to read {}: {}", path.display(), e))?;
 
-        let mut lexer = Lexer::new(&content);
-        let tokens = lexer.tokenize();
+        match parse(&source_code) {
+            Ok(tokens) => {
+                for token in tokens {
+                    println!("Rule: {:?}, Value: {}", token.as_rule(), token.as_str());
+                }
+            }
+            Err(error) => {
+                eprintln!("Parse error: {}", error);
+            }
+        }
 
-        println!("{:#?}", tokens);
-
-        // TODO: Add parser and code generation
         Ok(())
     }
 }

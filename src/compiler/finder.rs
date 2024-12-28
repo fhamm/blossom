@@ -22,18 +22,18 @@ impl<'a> SourceFinder<'a> {
         }
 
         let mut files = Vec::new();
-        self.visit_dirs(root, &mut files)?;
+        self.visit_dirs(&mut files)?;
         Ok(files)
     }
 
-    fn visit_dirs(&self, dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), String> {
+    fn visit_dirs(&self, files: &mut Vec<PathBuf>) -> Result<(), String> {
         let project_root = self.config.project.root.as_deref().unwrap_or(".");
         let root_dir = self.root_path.join(project_root);
 
         for entry in fs::read_dir(&root_dir).map_err(|e| e.to_string())? {
             let path = entry.map_err(|e| e.to_string())?.path();
             if path.is_dir() {
-                self.visit_dirs(&path, files)?;
+                self.visit_dirs(files)?;
             } else if let Some(extension) = path.extension() {
                 if extension == BLOSSOM_EXTENSION {
                     files.push(path);
