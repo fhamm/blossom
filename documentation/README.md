@@ -1,8 +1,19 @@
 ---
-icon: flower
+icon: house-chimney-heart
+layout:
+  title:
+    visible: true
+  description:
+    visible: false
+  tableOfContents:
+    visible: true
+  outline:
+    visible: true
+  pagination:
+    visible: true
 ---
 
-# Blossom
+# Home
 
 ## Introduction
 
