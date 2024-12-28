@@ -8,7 +8,7 @@ icon: flower
 
 _Do we really need another programming language?_
 
-I've also asked myself that question a million times - but the truth is that there is no perfect programming language. My goal with Blossom is to create a language which enables developers to create projects that grow as beautifully as a flower does - hence the name. This is achieved by adhering to certain core principles:
+I've also asked myself that question a million times - but the truth is that there is no perfect programming language - at least not for my needs. My goal with Blossom is to create a language which enables developers to create projects that grow as beautifully as a flower does - hence the name. This is achieved by adhering to certain core principles:
 
 * **Immutability** - Once declared, variables cannot be modified. This ensures predictable states, eliminates race conditions, and enables safe concurrent code.
 * **Strong & explicit typing** - Every value must have a clear, compile-time verified type. No implicit type conversions are allowed.
