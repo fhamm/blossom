@@ -420,9 +420,15 @@ PARAMETERS = {
 }
 
 // Error specification
-// Example: ! DivisionByZero
+// Examples:
+// ! DivisionByZero
+// ! (DivisionByZero, ConstraintError)
 ERROR_SPEC = {
-    "!" ~ IDENTIFIER
+    "!" ~ (IDENTIFIER | ERROR_TUPLE)
+}
+
+ERROR_TUPLE = {
+    "(" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ ")"
 }
 
 // Function definition

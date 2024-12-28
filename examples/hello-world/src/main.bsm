@@ -1,6 +1,6 @@
 @Module HelloWorld
 @Using IO
 
-Main(): None ! TypeError -> {
+Main() -> {
     PrintLine("Hello World!")
 }
