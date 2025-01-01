@@ -21,7 +21,7 @@ Functions are the fundamental building blocks of Blossom programs. They encapsul
 
 A function signature tells you everything you need to know about how to _use_ a function: what inputs it expects, what output it produces, and what errors it might encounter.
 
-Function signature are composed by:
+Function signatures are composed by:
 
 * **Name:** The function's identifier. This is how you call the function in your code.
 * **Parameters (Inputs):** These are the values the function takes as input. Each parameter has a name and a type. If there are no parameters, the function effectively takes no input.
