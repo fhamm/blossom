@@ -61,7 +61,7 @@ DivideWithRemainder(dividend: Integer, divisor: Integer): (Integer, Integer) ! D
 // can possibly throw either a 'NegativeSideError' or a 'ZeroAreaError'.
 CalculateArea(width: Float, height: Float): Float ! (NegativeSideError, ZeroAreaError) -> {
     match (width, height) -> {
-        (w, h) when (w &#x3C; 0 | h &#x3C; 0) -> throw NegativeSideError
+        (w, h) where (w &#x3C; 0 | h &#x3C; 0) -> throw NegativeSideError
         (0, _) -> throw ZeroAreaError
         (_, 0) -> throw ZeroAreaError
         (w, h) -> w * h
@@ -69,23 +69,23 @@ CalculateArea(width: Float, height: Float): Float ! (NegativeSideError, ZeroArea
 }
 </code></pre>
 
-## Function as parameters
+## Function Schemas
 
 In Blossom, there are no anonymous functions. We use the concept of scope-based anonymity and function schemas to ensure that we can create functions that only exist in a limited scope while still ensuring rigid typing validation.
 
-Function schemas are defined using the `:=`operator. They are specially useful for functions that receive another function as their argument.
+Function schemas are defined using the `:>` operator. They are specially useful for functions that receive another function as their argument.
 
 #### Syntax
 
 ```
-FunctionSchema := (ParameterType1, ParameterType2, ...): ReturnType ! ErrorType
+FunctionSchema :> (ParameterType1, ParameterType2, ...): ReturnType ! ErrorType
 ```
 
 #### Example
 
 ```
 // Function schema declaration
-Transformation := (Integer): Integer
+Transformation :> (Integer): Integer
 
 // 'Map' has a schematized function ('transformation') as one of its arguments
 Map(list: List, transformation: Transformation): List(Integer) -> { 
@@ -102,9 +102,36 @@ ProcessNumbers(numbers: List): List -> {
 }
 ```
 
-> ⚠️ Composite parameter types need to be predefined and cannot be created inside the signature parameters. This means that function schemas need to be declared outside the function signature syntax.
+> **Function schemas** **must be defined** **outside of function signatures**. This ensures code clarity and promotes type reuse. Type definitions cannot be created inline within function parameters.
 
 ## Pipelines
+
+The pipeline operator `|>` allows for chaining function calls in a readable left-to-right manner. Each function in the pipeline receives the result of the previous function as its input.
+
+The error handling operator `!>` is used within pipelines to handle errors at each step. It allows for local error handling without breaking the pipeline chain.
+
+#### Example
+
+```
+// Without pipeline
+updatedUser = UpdateUser(Validate(user))
+
+// With pipeline
+updatedUser = user 
+    |> Validate
+    |> UpdateUser
+
+// Error handling with pipeline
+ProcessUser(user: User): ProcessedUser ! (ValidationError, ProcessingError) -> {
+    user
+    |> Validate !> {
+        InvalidData -> throw ValidationError
+    }
+    |> UpdateUser !> {
+        UpdateFailed -> throw ProcessingError
+    }
+}
+```
 
 ## Pure Functions
 

@@ -68,13 +68,13 @@ Enumerations are grouped, non-valued self-definitions. In contrast to other lang
 #### Syntax
 
 ```
-Colors := (Red, Green, Blue)
+Colors := < Red, Green, Blue >
 ```
 
 #### Example
 
 ```
-Direction := (North, South, East, West)
+Direction := < North, South, East, West >
 
 heading: Direction = Direction.North
 
@@ -149,8 +149,13 @@ ListOfFloats := List(Float)
 #### Example
 
 ```
-// Some code
+Subject := < Calculus, History, Biology >
+Student := { Name: String, Enrollments: List(Course) }
+Teacher := { Name: String, Subject: Subject }
+Course  := ( Teacher, List(Student) )
 ```
+
+> **Composite types** **must be defined** **outside of function signatures**. This ensures code clarity and promotes type reuse. Type definitions cannot be created inline within function parameters.
 
 ## Constraints
 
