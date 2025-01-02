@@ -61,7 +61,7 @@ This section covers operators related to collections (like lists, tuples or reco
 
 ## Pattern matching
 
-These operators are used to build pattern matching flows.
+These operators are used for building pattern matching flows.
 
 | Element / Keyword | Description                                                                               |
 | ----------------- | ----------------------------------------------------------------------------------------- |
