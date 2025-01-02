@@ -67,7 +67,7 @@ These operators are used for building pattern matching flows.
 | ----------------- | ----------------------------------------------------------------------------------------- |
 | `match`           | Begins a pattern matching expression.                                                     |
 | `_`               | The wildcard pattern, matches any value. Used as the default case in `match` expressions. |
-| `?`               | Used to add conditions to patterns.                                                       |
+| `when`            | Used to add conditions to patterns.                                                       |
 
 ## Pipeline
 
