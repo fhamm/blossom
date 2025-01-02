@@ -15,59 +15,88 @@ layout:
 
 # Functions
 
-Functions are the fundamental building blocks of Blossom programs. They encapsulate reusable blocks of code, accept arguments, return values, and can explicitly declare the errors they might throw.
+Functions are the core building blocks of Blossom programs, encapsulating reusable code that accepts arguments, returns values and explicitly declares potential errors.
 
 ## Signatures
 
-A function signature tells you everything you need to know about how to _use_ a function: what inputs it expects, what output it produces, and what errors it might encounter.
+A function signature tells you everything you need to know about how to _use_ a function: what inputs it expects, what output it produces and what errors it might encounter.
 
-Function signatures are composed by:
+Function signatures are composed by their:
 
 * **Name:** The function's identifier. This is how you call the function in your code.
 * **Parameters (Inputs):** These are the values the function takes as input. Each parameter has a name and a type. If there are no parameters, the function effectively takes no input.
 * **Return type (Output):** This is the type of the value the function returns. If the function doesn't explicitly returns anything, its return type is `None`.
-* **Error types (Potential errors):** These are the types of errors the function might throw during execution. Listing these errors is a way of saying that the function might not always produce a normal output; it might instead result in an error. This is a way to handle potential side effects.
+* **Error types (Potential errors):** These are the types of errors the function might throw during execution. Listing these errors is a way of saying that the function might not always produce a normal output; it might instead produce an error. This is a way to handle potential side effects.
 
 #### Syntax
 
-<pre><code>// 'HelloWorld' has no arguments, returns nothing and throws no errors.
-HelloWorld -> Log.Info("Hello World!")
+`HelloWorld` has no arguments, returns `None` and throws no errors.
 
-// 'PrintName' has one argument, returns nothing and throws no errors.
+```
+HelloWorld -> { Log.Info("Hello World!") }
+```
+
+`PrintName` has the `name` (`String`)  argument, returns `None` and throws no errors.
+
+```
 PrintName(name: String) -> { Log.Info("My name is {{ name }}") }
-<strong>
-</strong><strong>// 'Add' has two arguments, returns an Integer and throws no errors.
-</strong><strong>Add(x: Integer, y: Integer): Integer -> { x + y }
-</strong>
-// 'Divide' has two arguments, returns a Float and 
-// possibly throws a 'DivisionByZero' error.
-Divide(x: Float, y: Float): Float ! DivisionByZero -> {
+```
+
+`Add` has `(x: Integer, y: Integer)` as its arguments, returns an `Integer` and throws no errors.
+
+```
+Add(x: Integer, y: Integer): Integer -> { x + y }
+```
+
+`Divide` has `(x: Float, y: Float)` as its arguments, returns a `Float` and throws the `DivisionByZero` error.
+
+```
+Divide
+(x: Float, y: Float)
+: Float 
+! DivisionByZero 
+-> {
     match (x, y) -> {
         (_, 0) -> throw DivisionByZero
         (x, y) -> x / y
     }
 }
+```
 
-// 'DivideWithRemainder' takes two Integers and 
-// returns a tuple containing the quotient and the remainder.
-DivideWithRemainder(dividend: Integer, divisor: Integer): (Integer, Integer) ! DivisionByZero -> {
+> Function signatures can be arranged into multiple lines, as shown in the example above.
+
+`DivideWithRemainder` has `(dividend: Integer, divisor: Integer)` as its arguments, returns a tuple `(Integer, Integer)` and throws the `DivisionByZero` error.
+
+```
+DivideWithRemainder
+(dividend: Integer, divisor: Integer)
+: (Integer, Integer) 
+! DivisionByZero 
+-> {
     match divisor -> {
         0 -> throw DivisionByZero
         _ -> (dividend / divisor, dividend % divisor)
     }
-}
+}t
 
-// 'CalculateArea' has two arguments, returns a Float and 
-// can possibly throw either a 'NegativeSideError' or a 'ZeroAreaError'.
-CalculateArea(width: Float, height: Float): Float ! (NegativeSideError, ZeroAreaError) -> {
+```
+
+`CalculateArea` has `(width: Float, height: Float)` as its arguments, returns a `Float` and throws the `NegativeSideError` and the `ZeroAreaError` errors.
+
+```
+CalculateArea
+(width: Float, height: Float)
+: Float 
+! (NegativeSideError, ZeroAreaError) 
+-> {
     match (width, height) -> {
-        (w, h) where (w &#x3C; 0 | h &#x3C; 0) -> throw NegativeSideError
+        (w, h) where (w < 0 | h < 0) -> throw NegativeSideError
         (0, _) -> throw ZeroAreaError
         (_, 0) -> throw ZeroAreaError
         (w, h) -> w * h
   }
 }
-</code></pre>
+```
 
 ## Function Schemas
 
@@ -106,23 +135,37 @@ ProcessNumbers(numbers: List): List -> {
 
 ## Pipelines
 
-The pipeline operator `|>` allows for chaining function calls in a readable left-to-right manner. Each function in the pipeline receives the result of the previous function as its input.
+The pipeline operator `|>` allows for **chaining function calls** in a readable left-to-right manner. Each function in the pipeline receives the result of the previous function as its input.
 
-The error handling operator `!>` is used within pipelines to handle errors at each step. It allows for local error handling without breaking the pipeline chain.
+The error handling operator `!>` is used within pipelines to **handle errors at each step**. It allows for local error handling without breaking the pipeline chain.
 
 #### Example
 
+Chaining function calls **without** using the pipeline operator.
+
 ```
-// Without pipeline
-updatedUser = UpdateUser(Validate(user))
+ProcessUser(user: User): User -> {
+    UpdateUser(Validate(user))
+}
+```
 
-// With pipeline
-updatedUser = user 
-    |> Validate
+Chaining function calls **with** the pipeline operator.
+
+<pre><code><strong>ProcessUser(user: User): User -> {
+</strong><strong>    user 
+</strong>    |> Validate
     |> UpdateUser
+}
+</code></pre>
 
-// Error handling with pipeline
-ProcessUser(user: User): ProcessedUser ! (ValidationError, ProcessingError) -> {
+Chaining function calls with the pipeline operator and handling possible errors with the pipeline error operator.
+
+```
+ProcessUser
+(user: User)
+: ProcessedUser
+! (ValidationError, ProcessingError)
+-> {
     user
     |> Validate !> {
         InvalidData -> throw ValidationError
