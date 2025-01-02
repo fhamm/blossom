@@ -28,7 +28,7 @@ I've also asked myself that question a million times - but the truth is that the
 
 Blossom compiles to Erlang, inheriting the power and stability of the Erlang VM to deliver exceptional concurrency and fault tolerance within a clean and elegant codebase
 
-## Installation & Playground
+## Installation
 
 Installing Blossom is quite straightforward.
 
@@ -44,19 +44,12 @@ If you're on `Linux`:
 curl github.com/fhamm/blossom/install.sh | sh
 ```
 
-If however, you don't want to install Blossom yet but want to give it a try, you can check Blossom's Interactive Playground.
-
 ## Getting Started
 
-We're excited to have you start using Blossom! Our documentation is the best place to begin your journey. It's constantly updated with the latest information and designed to make learning Blossom as easy as it can be.
-
-* Introduction
+We're excited to have you start using Blossom! Our [documentation](broken-reference) is the best place to begin your journey. It's constantly updated with the latest information and designed to make learning Blossom as easy as it can be.
 
 For issues, bug reports or contributions please visit our GitHub repository. We also have a Discord server in which we aim to build a friendly & active community for Blossom developers.
 
-* GitHub
-* Discord
-
 ## Author
 
-Blossom was designed & created by Felipe Hamm. He poured all his heart into it.
+Blossom was designed & created by Felipe Hamm. He poured all his heart into it!
