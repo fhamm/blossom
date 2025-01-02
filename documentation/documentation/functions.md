@@ -52,9 +52,9 @@ Add(x: Integer, y: Integer): Integer -> { x + y }
 
 ```
 Divide
-(x: Float, y: Float)
-: Float 
-! DivisionByZero 
+    (x: Float, y: Float)
+    : Float 
+    ! DivisionByZero 
 -> {
     match (x, y) -> {
         (_, 0) -> throw DivisionByZero
@@ -69,9 +69,9 @@ Divide
 
 ```
 DivideWithRemainder
-(dividend: Integer, divisor: Integer)
-: (Integer, Integer) 
-! DivisionByZero 
+    (dividend: Integer, divisor: Integer)
+    : (Integer, Integer) 
+    ! DivisionByZero 
 -> {
     match divisor -> {
         0 -> throw DivisionByZero
@@ -85,9 +85,9 @@ DivideWithRemainder
 
 ```
 CalculateArea
-(width: Float, height: Float)
-: Float 
-! (NegativeSideError, ZeroAreaError) 
+    (width: Float, height: Float)
+    : Float 
+    ! (NegativeSideError, ZeroAreaError) 
 -> {
     match (width, height) -> {
         (w, h) where (w < 0 | h < 0) -> throw NegativeSideError
@@ -117,7 +117,7 @@ FunctionSchema :> (ParameterType1, ParameterType2, ...): ReturnType ! ErrorType
 Transformation :> (Integer): Integer
 
 // 'Map' has a schematized function ('transformation') as one of its arguments
-Map(list: List, transformation: Transformation): List(Integer) -> { 
+Map(list: List, transformation: Transformation): List(Integer) -> {
     match list -> { 
         [] -> [] 
         [x, ...xs] -> [transformation(x), ...Map(xs, transformation)] 
@@ -162,9 +162,9 @@ Chaining function calls with the pipeline operator and handling possible errors 
 
 ```
 ProcessUser
-(user: User)
-: ProcessedUser
-! (ValidationError, ProcessingError)
+    (user: User)
+    : ProcessedUser
+    ! (ValidationError, ProcessingError)
 -> {
     user
     |> Validate !> {
