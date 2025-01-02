@@ -44,15 +44,15 @@ Lists are homogeneous collections of elements.
 #### Syntax
 
 ```
-Numbers: List(ElementType) = [1, 2, 3, 4, 5]
+Numbers: List(Integer) = [1, 2, 3, 4, 5]
 ```
 
 #### Example
 
 ```
-Average(values: List(Float)): Float ! ParameterError -> {
+Average(values: List(Float)): Float ! EmptyListError -> {
     match List.Length(values) -> {
-        0 -> throw ParameterError
+        0 -> throw EmptyListError
         length: Integer -> {
             sum: Float = values.Fold((acc: Float, n: Float) -> {acc + n}, 0)
             sum / Float.From(length)
