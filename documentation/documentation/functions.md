@@ -178,7 +178,7 @@ LogAndAdd(x: Integer, y: Integer): Integer -> {
 }
 ```
 
-This example would result in a compiler error because `Log.Info` is assumed to perform I/O (a side effect), violating the "No side effects" requirement.
+This example would result in a compiler error because `Log.Info` is assumed to perform I/O (a side effect), violating the "no side effects" requirement.
 
 #### Benefits
 
