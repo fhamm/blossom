@@ -1,4 +1,15 @@
+# Basic patterns
 target/
 .DS_Store
 *.swp
 *~
+
+# Node dependencies
+**/node_modules/
+
+# Tree-sitter specific
+tools/tree-sitter-blossom/build/
+tools/tree-sitter-blossom/bindings/
+tools/tree-sitter-blossom/src/*.json
+tools/tree-sitter-blossom/src/*.cc
+tools/tree-sitter-blossom/src/*.h

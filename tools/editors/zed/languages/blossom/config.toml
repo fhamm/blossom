@@ -1,0 +1,10 @@
+name = "Blossom"
+grammar = "blossom"
+path_suffixes = ["blsm"]
+line_comments = ["// "]
+brackets = [
+    { start = "{", end = "}", close = true },
+    { start = "[", end = "]", close = true },
+    { start = "(", end = ")", close = true },
+    { start = "<", end = ">", close = true },
+]

@@ -1,0 +1,73 @@
+=====================================
+Basic module with function
+=====================================
+
+@module Example
+
+@import Math
+@import Logger as L
+
+Add(x: Integer, y: Integer): Integer -> {
+  x + y
+}
+
+---
+
+(source_file
+  (module_declaration
+    (identifier))
+  (import_declaration
+    (module_path
+      (identifier)))
+  (import_declaration
+    (module_path
+      (identifier))
+    (identifier))
+  (function_definition
+    (identifier)
+    (parameters
+      (parameter
+        (identifier)
+        (type_expression
+          (primitive_type)))
+      (parameter
+        (identifier)
+        (type_expression
+          (primitive_type))))
+    (type_expression
+      (primitive_type))
+    (block
+      (binary_expression
+        (identifier)
+        (identifier)))))
+
+=====================================
+Type definition with constraints
+=====================================
+
+@module Types
+
+PositiveInteger := Integer -> LargerThan(0)
+Age := Integer -> LargerThan(0) & LowerThan(150)
+
+---
+
+(source_file
+  (module_declaration
+    (identifier))
+  (type_definition
+    (identifier)
+    (type_expression
+      (primitive_type))
+    (constraint_expression
+      (identifier)
+      (integer)))
+  (type_definition
+    (identifier)
+    (type_expression
+      (primitive_type))
+    (constraint_expression
+      (identifier)
+      (integer)
+      (identifier)
+      (integer))))

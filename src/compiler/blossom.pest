@@ -1,122 +1,69 @@
-//! Grammar rules for the Blossom programming language
+//! Blossom Language Grammar
+//! A modern, type-safe programming language with first-class error handling
 
-// Main program structure
+// ========= Core Program Structure =========
+
 // A Blossom source file must:
-// 1. Start with @Module declaration
-// 2. Follow with imports (@Import or @Using)
+// 1. Start with @module declaration
+// 2. Follow with @import or @use statements
 // 3. Continue with type definitions and function declarations
-// 4. Optionally include visibility annotations (@Public/@Private)
 BLOSSOM = {
-    SOI ~ MODULE_ANNOTATION ~ (IMPORT_ANNOTATION | USING_ANNOTATION)* ~ (TYPE_DEFINITION | FUNCTION_DEFINITION | SCOPE_ANNOTATION | VARIABLE_DEFINITION)* ~ EOI
+    SOI ~ MODULE_DECLARATION ~ (IMPORT_DECLARATION | USING_DECLARATION)* ~ (TYPE_DEFINITION | FUNCTION_DEFINITION | VARIABLE_DEFINITION)* ~ EOI
 }
 
 // ========= Core Language Elements =========
 
-// Skip whitespace during parsing
-WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+// Skip whitespace and comments during parsing
+WHITESPACE = _{ " " | "\t" | NEWLINE }
+NEWLINE    = _{ "\r\n" | "\n" | "\r" }
+
+// Comments support both single-line and multi-line styles
+COMMENT = _{
+    ("//" ~ (!NEWLINE ~ ANY)*)
+  | // Single-line comment
+  ("/*" ~ (!"*/" ~ ANY)* ~ "*/") // Multi-line comment
+}
 
 // Valid identifier: starts with letter, followed by letters/numbers/_
-// Examples: myVar, user_name, PlayerData2
 IDENTIFIER = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
 
-// ========= Comments =========
+// ========= Decorators and Annotations =========
 
-// Two types of comments:
-// 1. Single-line:  // This is a comment
-// 2. Multi-line:   /* This is a
-// multi-line comment */
-COMMENT = _{
-    ("//" ~ (!"\n" ~ ANY)*)
-  | ("/*" ~ (!"*/" ~ ANY)* ~ "*/")
+// Decorators modify the behavior or visibility of declarations
+// Examples: @public, @pure
+DECORATOR = {
+    "@public"
+  | "@private"
+  | "@pure"
 }
 
-// ========= Annotations =========
+DECORATOR_LIST = { DECORATOR* }
 
-// Module declaration (must be first in file)
-// Example: @Module GameEngine
-MODULE_ANNOTATION = { "@Module" ~ IDENTIFIER }
+// ========= Module System =========
 
-// Package import with optional alias
+// Module path identifier
+// Example: Standard.IO
+MODULE_PATH = { IDENTIFIER ~ ("." ~ IDENTIFIER)* }
+
+// Module declaration defines the current module's name
+// Example: @module GameEngine
+MODULE_DECLARATION = { "@module" ~ IDENTIFIER }
+
+// Import brings in external modules, optionally with aliases
 // Examples:
-// @Import Http
-// @Import Logger As L
-IMPORT_ANNOTATION = {
-    "@Import" ~ IDENTIFIER ~ ("As" ~ IDENTIFIER)?
+// @import HTTP
+// @import Logger as L
+IMPORT_DECLARATION = {
+    "@import" ~ MODULE_PATH ~ ("as" ~ IDENTIFIER)?
 }
 
-// Package import that adds to current scope
-// Example: @Using HTTP
-// Note: All exports from Http become available in current scope
-USING_ANNOTATION = { "@Using" ~ IDENTIFIER }
+// Using imports add symbols directly to current scope
+// Example: @using Standard.IO
+USING_DECLARATION = { "@using" ~ MODULE_PATH }
 
-// Scope modifier (affects all declarations until next scope annotation)
-// Examples:
-// @Public
-// @Private
-SCOPE_ANNOTATION = { "@Public" | "@Private" }
+// ========= Types and Type Definitions =========
 
-// Marks a function as pure (no side effects)
-// Example:
-// @Pure
-// Calculate(x int): int -> { ... }
-PURE_FUNCTION_ANNOTATION = { "@Pure" }
-
-// ========= Operators =========
-
-// Arithmetic operators
-// Examples: +, -, *, /, %
-ARITHMETIC_OPERATOR = {
-    "+"
-  | "-"
-  | "*"
-  | "/"
-  | "%"
-}
-
-// Logical operators
-// Examples: &, |, !
-LOGICAL_OPERATOR = {
-    "&"
-  | "|"
-  | "!"
-}
-
-// Comparison operators
-// Examples: ==, !=, >, <, >=, <=
-COMPARISON_OPERATOR = {
-    "=="
-  | "!="
-  | ">="
-  | "<="
-  | ">"
-  | "<"
-}
-
-// String template expression
-// Example: "Hello, {{name}}!"
-STRING_TEMPLATE_EXPR = {
-    "{{" ~ (!("}}" | "{{") ~ ANY)* ~ "}}"
-}
-
-STRING_TEMPLATE = @{
-    "\"" ~ (STRING_TEMPLATE_EXPR | (!"\"" ~ ANY))* ~ "\""
-}
-
-// Spread operator
-// Examples:
-// - Records: { ...person, age: 31 }
-// - Lists: [...numbers, 4, 5]
-SPREAD_OPERATOR = { "..." ~ IDENTIFIER }
-
-// Pipeline operators
-// Example: value |> transform !> handleError
-PIPELINE_OPERATOR      = { "|>" }
-ERROR_HANDLER_OPERATOR = { "!>" }
-
-// ========= Primitive Types =========
-
-// Built-in primitive type names
-// Examples: Integer, String, Boolean
+// Built-in primitive types
 PRIMITIVE_TYPE = {
     "None"
   | "Integer"
@@ -126,14 +73,194 @@ PRIMITIVE_TYPE = {
   | "Binary"
 }
 
-// ========= Literal Values =========
+// Type definition using := operator
+// Examples:
+// Point := (Float, Float)
+// Result := (Success, Error)
+TYPE_DEFINITION = {
+    DECORATOR_LIST ~ IDENTIFIER ~ ":=" ~ BASE_TYPE ~ (("->" ~ CONSTRAINT_EXPRESSION) | WHERE_CLAUSE)?
+}
 
-// Integer literal (e.g., 42, -17, 1_000_000)
-INTEGER = @{ "-"? ~ ASCII_DIGIT+ ~ ("_" ~ ASCII_DIGIT+)* }
+// Types can be constrained using where clauses
+WHERE_CLAUSE = {
+    "where" ~ CONSTRAINT_EXPRESSION ~ ("," ~ CONSTRAINT_EXPRESSION)*
+}
 
-// Float literal (e.g., 3.14, -0.001, 2.5e-4)
-FLOAT = @{
-    "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ ~ ("e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+// Base types without constraints
+BASE_TYPE = {
+    ENUM_DEFINITION
+  | COLLECTION_TYPE
+  | OPTIONAL_TYPE
+  | PRIMITIVE_TYPE
+}
+
+// Collections: Lists, Tuples, Records
+COLLECTION_TYPE = {
+    LIST_TYPE
+  | TUPLE_TYPE
+  | RECORD_TYPE
+}
+
+// ========= Collection Types =========
+
+// List type definition
+// Example: List(Integer)
+LIST_TYPE = { "List" ~ "(" ~ PRIMITIVE_TYPE ~ ")" }
+
+// Tuple type definition
+// Example: (Float, Float)
+TUPLE_TYPE = {
+    "(" ~ PRIMITIVE_TYPE ~ ("," ~ PRIMITIVE_TYPE)* ~ ")"
+}
+
+// Record type definition
+// Example: { name: String, age: Integer }
+RECORD_FIELD = { IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE }
+RECORD_TYPE  = {
+    "{" ~ RECORD_FIELD ~ ("," ~ RECORD_FIELD)* ~ "}"
+}
+
+// ========= Enum Types =========
+
+// Enum variant naming follows PascalCase convention
+ENUM_VARIANT = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "_")* }
+
+// Enum definition
+// Example: (North, South, East, West)
+ENUM_DEFINITION = {
+    "(" ~ ENUM_VARIANT ~ ("," ~ ENUM_VARIANT)* ~ ")"
+}
+
+// ========= Optional Types =========
+
+// Optional type wraps another type
+// Example: Optional(Integer)
+OPTIONAL_TYPE = {
+    "Optional" ~ "(" ~ (PRIMITIVE_TYPE | LIST_TYPE | TUPLE_TYPE | RECORD_TYPE) ~ ")"
+}
+
+// ========= Function Definitions =========
+
+// Complete function definition with decorators, params, return type, errors
+FUNCTION_DEFINITION = {
+    DECORATOR_LIST ~ IDENTIFIER ~ (PARAMETERS_MULTILINE ~ (":" ~ PRIMITIVE_TYPE)? ~ ERROR_SPEC? ~ "->" | "->") ~ BLOCK
+}
+
+// Multi-line parameter support
+PARAMETERS_MULTILINE = {
+    "(" ~ WHITESPACE* ~ (PARAMETER ~ ("," ~ WHITESPACE* ~ PARAMETER)* ~ ","?)? ~ WHITESPACE* ~ ")"
+}
+
+PARAMETER = {
+    WHITESPACE* ~ IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE ~ WHITESPACE*
+}
+
+// ========= Error Handling =========
+
+// Error specification for functions
+// Can be single error or tuple of errors
+ERROR_SPEC = {
+    "!" ~ (IDENTIFIER | ERROR_TUPLE)
+}
+
+ERROR_TUPLE = {
+    "(" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ ")"
+}
+
+// Throw expression for error handling
+THROW_EXPRESSION = {
+    "throw" ~ IDENTIFIER ~ "." ~ ENUM_VARIANT
+}
+
+// ========= Expressions =========
+
+// Expressions represent computations that produce values
+// Core expression types include:
+// - Literals (42, "hello", True)
+// - Variables (myVar, counter)
+// - Function calls (Calculate(x))
+// - Operations (a + b, !isDone)
+// - Pattern matching (match x -> { ... })
+
+// Base expressions (non-recursive)
+ATOM = {
+    LITERAL
+  | IDENTIFIER
+  | MATCH_EXPRESSION
+  | THROW_EXPRESSION
+  | "(" ~ EXPRESSION ~ ")"
+}
+
+// Main expression rule using pratt parser for operator precedence
+EXPRESSION = {
+    ATOM ~ (INFIX_OPERATOR ~ ATOM)*
+}
+
+// ========= Operators =========
+
+// All operators that can appear between expressions
+INFIX_OPERATOR = _{
+    ARITHMETIC_OPERATOR
+  | LOGICAL_OPERATOR
+  | COMPARISON_OPERATOR
+  | PIPELINE_OPERATOR
+  | ERROR_HANDLER_OPERATOR
+}
+
+// Arithmetic: +, -, *, /, %
+ARITHMETIC_OPERATOR = {
+    "+"
+  | "-"
+  | "*"
+  | "/"
+  | "%"
+}
+
+// Logical: &, |, !
+LOGICAL_OPERATOR = {
+    "&"
+  | "|"
+  | "!"
+}
+
+// Comparison: ==, !=, >, <, >=, <=
+COMPARISON_OPERATOR = {
+    "=="
+  | "!="
+  | ">="
+  | "<="
+  | ">"
+  | "<"
+}
+
+// Pipeline operators for chaining and error handling
+PIPELINE_OPERATOR      = { "|>" }
+ERROR_HANDLER_OPERATOR = { "!>" }
+
+// ========= Literals =========
+
+// Base literals (non-recursive)
+BASE_LITERAL = {
+    INTEGER
+  | FLOAT
+  | STRING
+  | BOOLEAN
+  | BINARY_LITERAL
+  | OPTIONAL_VALUE
+}
+
+// Collection literals
+COLLECTION_LITERAL = {
+    ENUM_VALUE
+  | TUPLE_VALUE
+  | LIST_VALUE
+  | RECORD_VALUE
+}
+
+// Combined literal rule
+LITERAL = {
+    BASE_LITERAL
+  | COLLECTION_LITERAL
 }
 
 // String literal (e.g., "hello", "path/to/file")
@@ -142,77 +269,33 @@ STRING = @{
   | ("\"" ~ (!"\"" ~ ANY)* ~ "\"")
 }
 
-// Boolean literal (True or False)
-BOOLEAN = { "True" | "False" }
+// Integer with optional underscores (e.g., 1_000_000)
+INTEGER = @{ "-"? ~ ASCII_DIGIT+ ~ ("_" ~ ASCII_DIGIT+)* }
 
-// Binary literal (e.g., <<0x01, 0x02>>)
-HEX_BYTE = @{ "0x" ~ ASCII_HEX_DIGIT{2} }
-BINARY   =  { "<<" ~ HEX_BYTE ~ ("," ~ HEX_BYTE)* ~ ">>" }
-
-// ========= Optional Type =========
-
-// Optional type definition
-// Examples:
-// Optional(Integer)
-// Optional(String)
-// Optional(List(Integer))
-OPTIONAL_TYPE = {
-    "Optional" ~ "(" ~ (PRIMITIVE_TYPE | LIST_DEFINITION | TUPLE_TYPES | RECORD_FIELDS) ~ ")"
+// Float with optional scientific notation
+FLOAT = @{
+    "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ ~ ("e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
 }
 
+// Binary numbers and byte arrays
+BINARY_DIGIT  =  { "0" | "1" }
+BINARY_NUMBER = @{ "0b" ~ BINARY_DIGIT+ }
+HEX_NUMBER    = @{ "0x" ~ ASCII_HEX_DIGIT+ }
+BYTES         = @{ "#[" ~ ASCII_HEX_DIGIT{2} ~ (" " ~ ASCII_HEX_DIGIT{2})* ~ "]" }
+
+BINARY_LITERAL = {
+    BINARY_NUMBER
+  | HEX_NUMBER
+  | BYTES
+}
+
+// Boolean literals
+BOOLEAN = { "True" | "False" }
+
+// Optional values
 OPTIONAL_VALUE = {
     "None"
   | "Some" ~ "(" ~ LITERAL ~ ")"
-}
-
-// ========= Collection Types =========
-
-// Enum Definition
-// Example: Direction: (North, South, East, West)
-ENUM_VARIANT    = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
-ENUM_VARIANTS   =  {
-    "(" ~ ENUM_VARIANT ~ ("," ~ ENUM_VARIANT)* ~ ")"
-}
-ENUM_DEFINITION =  {
-    IDENTIFIER ~ ":" ~ ENUM_VARIANTS
-}
-
-// Tuple Definition
-// Example: Point: (Float, Float)
-TUPLE_TYPES      = {
-    "(" ~ PRIMITIVE_TYPE ~ ("," ~ PRIMITIVE_TYPE)* ~ ")"
-}
-TUPLE_DEFINITION = {
-    IDENTIFIER ~ ":" ~ TUPLE_TYPES
-}
-
-// List Definition
-// Example: Numbers: List(Integer)
-LIST_DEFINITION = {
-    IDENTIFIER ~ ":" ~ "List" ~ "(" ~ PRIMITIVE_TYPE ~ ")"
-}
-
-// Record Definition
-// Example: Person: { name: String, age: Integer }
-RECORD_FIELD      = {
-    IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE
-}
-RECORD_FIELDS     = {
-    "{" ~ RECORD_FIELD ~ ("," ~ RECORD_FIELD)* ~ "}"
-}
-RECORD_DEFINITION = {
-    IDENTIFIER ~ ":" ~ RECORD_FIELDS
-}
-
-// Collection type definitions
-// Examples:
-// List(Integer)
-// (Float, Float)
-// { name: String, age: Integer }
-COLLECTION_TYPE = {
-    LIST_DEFINITION
-  | TUPLE_DEFINITION
-  | RECORD_DEFINITION
 }
 
 // ========= Collection Values =========
@@ -227,165 +310,37 @@ TUPLE_VALUE = {
     "(" ~ LITERAL ~ ("," ~ LITERAL)* ~ ")"
 }
 
-// List value (e.g., [1, 2, 3])
+// List value with optional spread operator
 LIST_VALUE = {
     "[" ~ (SPREAD_OPERATOR | LITERAL)? ~ ("," ~ (SPREAD_OPERATOR | LITERAL))* ~ "]"
 }
 
-// Record value (e.g., { name: "Alice", age: 30 })
+// Record value with optional spread
 RECORD_FIELD_VALUE = {
     IDENTIFIER ~ ":" ~ LITERAL
 }
-RECORD_VALUE       = {
+
+RECORD_VALUE = {
     "{" ~ (SPREAD_OPERATOR | RECORD_FIELD_VALUE) ~ ("," ~ (SPREAD_OPERATOR | RECORD_FIELD_VALUE))* ~ "}"
 }
 
-// ========= Literals =========
+// Spread operator for collections
+SPREAD_OPERATOR = { "..." ~ IDENTIFIER }
 
-// Update the existing LITERAL rule to include collections
-// Base literals (non-recursive)
-BASE_LITERAL = {
-    INTEGER
-  | FLOAT
-  | STRING
-  | BOOLEAN
-  | BINARY
-  | OPTIONAL_VALUE
+// ========= String Templates =========
+
+// String template expression (e.g., "Hello, {{name}}!")
+STRING_TEMPLATE_EXPR = {
+    "{{" ~ (!("}}" | "{{") ~ ANY)* ~ "}}"
 }
 
-// Collection literals
-COLLECTION_LITERAL = {
-    ENUM_VALUE
-  | TUPLE_VALUE
-  | LIST_VALUE
-  | RECORD_VALUE
-}
-
-// Combined literal rule
-// Note: OPTIONAL_VALUE removed from here to avoid recursion
-LITERAL = {
-    BASE_LITERAL
-  | COLLECTION_LITERAL
-}
-
-// ========= Variable Definitions =========
-
-// Variable definition with type and optional initialization
-// All variables must have explicit type declarations
-// Examples:
-// age: Integer = 30
-// name: String = "Alice"
-VARIABLE_DEFINITION = {
-    IDENTIFIER ~ ":" ~ (PRIMITIVE_TYPE | OPTIONAL_TYPE) ~ ("=" ~ (LITERAL | "None"))?
-}
-
-// ========= Type Definitions =========
-
-// Base type definitions without constraints
-BASE_TYPE = {
-    ENUM_DEFINITION
-  | COLLECTION_TYPE
-  | OPTIONAL_TYPE
-  | PRIMITIVE_TYPE
-}
-
-// Defines a new type in Blossom. Types can be:
-// 1. Enums: Fixed set of possible values
-// 2. Tuples: Fixed-size ordered collections
-// 3. Lists: Homogeneous collections
-// 4. Records: Named fields
-// 5. Optionals: Maybe-present values
-// 6. Primitives: Basic types
-// 
-// Any type can have constraints defined by pure functions.
-// These functions run on every value assignment to verify the type's invariants.
-// If constraints are violated, an error is thrown during runtime.
-TYPE_DEFINITION = {
-    IDENTIFIER ~ ":" ~ BASE_TYPE ~ ("->" ~ CONSTRAINT_EXPRESSION)?
-}
-
-// ========= Constraints =========
-
-// Constraint expression that defines type restrictions
-// Can be:
-// - Single function:     LargerThan(0)
-// - Combined functions:  LargerThan(0) & LowerThan(150)
-// Examples:
-// LargerThan(0)
-// IsEmail
-// NotEmpty
-// LargerThan(0) & LowerThan(150)
-CONSTRAINT_FUNCTION = {
-    IDENTIFIER ~ ("(" ~ LITERAL ~ ")")?
-}
-
-CONSTRAINT_EXPRESSION = {
-    CONSTRAINT_FUNCTION ~ (LOGICAL_OPERATOR ~ CONSTRAINT_FUNCTION)*
-}
-
-// ========= Expressions =========
-
-// Expressions in Blossom represent computations that produce values
-// They can be:
-// - Literals:           42, "hello", True
-// - Variables:          myVar, counter
-// - Arithmetic:         a + b, x * y
-// - Logical:           a & b, !isDone
-// - Comparisons:       age >= 18, x == y
-// - Function calls:    Calculate(x)
-// - Pipeline chains:   value |> Transform |> Process
-// - Error handling:    expr !> { Error -> handle }
-
-// Atoms (non-recursive base expressions)
-ATOM = {
-    LITERAL
-  | IDENTIFIER
-  | MATCH_EXPRESSION
-  | THROW_EXPRESSION
-  | "(" ~ EXPRESSION ~ ")"
-}
-
-// Main expression rule using pratt parser for operator precedence
-EXPRESSION = {
-    ATOM ~ (INFIX_OPERATOR ~ ATOM)*
-}
-
-// Combines all operators that can appear between expressions
-INFIX_OPERATOR = _{
-    ARITHMETIC_OPERATOR
-  | LOGICAL_OPERATOR
-  | COMPARISON_OPERATOR
-  | PIPELINE_OPERATOR
-  | ERROR_HANDLER_OPERATOR
-}
-
-// ========= Blocks =========
-
-// A block is a sequence of statements enclosed in curly braces
-// The value of a block is the value of its last expression
-// Examples:
-// {
-// x: Integer = 42
-// y: Integer = x * 2
-// y + 1
-// }
-// 
-// {
-// DoSomething()
-// ComputeValue()
-// }
-BLOCK = {
-    "{" ~ (VARIABLE_DEFINITION | EXPRESSION)* ~ EXPRESSION? ~ "}"
+STRING_TEMPLATE = @{
+    "\"" ~ (STRING_TEMPLATE_EXPR | (!"\"" ~ ANY))* ~ "\""
 }
 
 // ========= Pattern Matching =========
 
 // Patterns that can appear in match expressions
-// Examples:
-// 0                    - literal pattern
-// n: Integer           - binding pattern
-// (x: Float, y: Float) - tuple pattern
-// _                    - wildcard pattern
 MATCH_PATTERN = {
     LITERAL
   | // literal pattern
@@ -396,53 +351,36 @@ MATCH_PATTERN = {
   "(" ~ MATCH_PATTERN ~ ("," ~ MATCH_PATTERN)* ~ ")" // tuple pattern
 }
 
-// Match arms - pattern -> expression
+// Match arms (pattern -> expression)
 MATCH_ARM = {
     MATCH_PATTERN ~ "->" ~ (EXPRESSION | BLOCK)
 }
 
 // Complete match expression
-// Example: match x -> { pattern -> expr }
 MATCH_EXPRESSION = {
     "match" ~ EXPRESSION ~ "->" ~ "{" ~ MATCH_ARM ~ ("," ~ MATCH_ARM)* ~ "}"
 }
 
-// ========= Functions =========
+// ========= Variables and Blocks =========
 
-// Function parameter definition
-// Example: x: Integer
-PARAMETER = { IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE }
-
-// Function parameters list
-// Example: (x: Integer, y: Float)
-PARAMETERS = {
-    "(" ~ PARAMETER? ~ ("," ~ PARAMETER)* ~ ")"
+// Variable definition with type and optional initialization
+VARIABLE_DEFINITION = {
+    IDENTIFIER ~ ":" ~ (PRIMITIVE_TYPE | OPTIONAL_TYPE) ~ ("=" ~ (LITERAL | "None"))?
 }
 
-// Error specification
-// Examples:
-// ! DivisionByZero
-// ! (DivisionByZero, ConstraintError)
-ERROR_SPEC = {
-    "!" ~ (IDENTIFIER | ERROR_TUPLE)
+// A block is a sequence of statements with a final expression
+BLOCK = {
+    "{" ~ (VARIABLE_DEFINITION | EXPRESSION)* ~ EXPRESSION? ~ "}"
 }
 
-ERROR_TUPLE = {
-    "(" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ ")"
+// ========= Constraints =========
+
+// Constraint functions for type refinements
+CONSTRAINT_FUNCTION = {
+    IDENTIFIER ~ ("(" ~ LITERAL ~ ")")?
 }
 
-// Function definition
-// Examples:
-// Calculate(x: Integer): Integer -> { ... }
-// Divide(x: Integer, y: Integer) ! DivisionByZero -> { ... }
-FUNCTION_DEFINITION = {
-    PURE_FUNCTION_ANNOTATION? ~ IDENTIFIER ~ PARAMETERS ~ (":" ~ PRIMITIVE_TYPE)? ~ (ERROR_SPEC)? ~ "->" ~ BLOCK
-}
-
-// ========= Error Handling =========
-
-// Throw expression
-// Example: throw DivisionByZero
-THROW_EXPRESSION = {
-    "throw" ~ IDENTIFIER
+// Combined constraint expression
+CONSTRAINT_EXPRESSION = {
+    CONSTRAINT_FUNCTION ~ (LOGICAL_OPERATOR ~ CONSTRAINT_FUNCTION)*
 }
