@@ -9,4 +9,4 @@ repository = "https://github.com/fhamm/blossom"
 [grammars.blossom]
 repository = "https://github.com/fhamm/blossom"
 subpath = "tools/tree-sitter-blossom"
-commit = ""
+commit = "dad96bdc862769786a28f54b38a294ed88b963ce"
