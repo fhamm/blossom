@@ -56,7 +56,7 @@ Average
       match List.Length(values) -> {
         0 -> throw EmptyListError
         length: Int -> {
-            sum: Float = List.Fold(values, (acc, n) -> {acc + n}, 0)
+            sum: Float = List.Fold(values, 0, Folder<acc, n> -> acc + n)
             sum / Float.From(length)
         }
       }
@@ -140,7 +140,6 @@ alice: Person = { Name: "Alice", Age: 30 }
 bob: Person = { Name: "Bob", Age: 42 }
 
 UpdateAge(person: Person, newAge: Int): Person -> {
-    Log.Info("Updating {{person.Name}}")
     { ...person, Age: newAge }
 }
 ```
@@ -185,6 +184,6 @@ If, for some reason any of the constraints is violated, a `ConstraintError` is t
 ```
 Email
   := String
-  &> Constraint<v> -> v != ""
+  &> Constraint<v> -> String.NotEmpty(v)
   &> Constraint<v> -> !Regex.Validate(v, EMAIL_REGEX)
 ```
