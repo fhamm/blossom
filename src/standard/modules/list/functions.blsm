@@ -1,0 +1,22 @@
+@module List
+
+Mapper := t <> t : t
+Folder := t <> (t, t) : t
+
++Map
+    :: t <> (list: List<t>, fn: Mapper<t>) : List<t>
+    -> {
+        match list -> {
+            [] -> []
+            [x, ...xs] -> [fn(x), ...Map(xs, fn)]
+        }
+    }
+
++Fold
+    :: t <> (list: List<t>, initial: t, fn: Folder<t>) : t
+    -> {
+        match list -> {
+            [] -> initial
+            [x, ...xs] -> Fold(xs, fn(initial, x), fn)
+        }
+    }

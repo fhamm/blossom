@@ -25,11 +25,11 @@ The primitive types are the bread & butter of the Blossom typing system.
 
 | Name        | Example(s)                  |
 | ----------- | --------------------------- |
-| **Boolean** | `True`                      |
-| **Integer** | `1517`, `301`, `-127`, `0`  |
+| **Bool**    | `True`, `False`             |
+| **Int**     | `1517`, `301`, `-127`, `0`  |
 | **Float**   | `3.14`, `-1.67`, `1.24e-10` |
 | **String**  | `"Blossom"`                 |
-| **None**    | `None`                      |
+| **Unit**    | `None`, `Unit`              |
 
 ## Collections
 
@@ -44,21 +44,23 @@ Lists are homogeneous collections of elements.
 #### Syntax
 
 ```
-Numbers: List(Integer) = [1, 2, 3, 4, 5]
+Numbers: List<Int> = [1, 2, 3, 4, 5]
 ```
 
 #### Example
 
 ```
-Average(values: List(Float)): Float ! EmptyListError -> {
-    match List.Length(values) -> {
+Average
+  :: (values: List<Float>): Float ! EmptyListError
+  ->  {
+      match List.Length(values) -> {
         0 -> throw EmptyListError
-        length: Integer -> {
-            sum: Float = values.Fold((acc: Float, n: Float) -> {acc + n}, 0)
+        length: Int -> {
+            sum: Float = List.Fold(values, (acc, n) -> {acc + n}, 0)
             sum / Float.From(length)
         }
-    }
-}
+      }
+  }
 ```
 
 ### Enumerations
@@ -88,6 +90,13 @@ ProcessDirection(direction: Direction): String -> {
 }
 ```
 
+Enumerations can also be constructed using the spread `...` operator.
+
+```
+BaseColors := < Red, Green, Blue >
+ExtendedColors := < ...BaseColors, Yellow, Orange, Black, White >
+```
+
 ### Tuples
 
 Tuples are fixed-size, heterogeneous, ordered collections of values.
@@ -108,7 +117,7 @@ Origin: Point = (0.0, 0.0)
 Distance(p1: Point, p2: Point): Float -> {
     dx: Float = p2[0] - p1[1]
     dy: Float = p2[0] - p1[1]
-    Math.SquareRoot(dx * dx + dy * dy) 
+    Math.SquareRoot(dx * dx + dy * dy)
 }
 ```
 
@@ -119,18 +128,18 @@ Records are immutable data structures comprised of named fields, each associated
 #### Syntax
 
 ```
-Person := { Name: String, Age: Integer }
+Person := { Name: String, Age: Int }
 ```
 
 #### Example
 
 ```
-Person := { Name: String, Age: Integer }
+Person := { Name: String, Age: Int }
 
 alice: Person = { Name: "Alice", Age: 30 }
 bob: Person = { Name: "Bob", Age: 42 }
 
-UpdateAge(person: Person, newAge: Integer): Person -> {
+UpdateAge(person: Person, newAge: Int): Person -> {
     Log.Info("Updating {{person.Name}}")
     { ...person, Age: newAge }
 }
@@ -143,7 +152,7 @@ Blossom provides a type composition mechanism, enabling the construction of new 
 #### Syntax
 
 ```
-ListOfFloats := List(Float)
+ListOfFloats := List<Float>
 ```
 
 #### Example
@@ -152,32 +161,31 @@ ListOfFloats := List(Float)
 Subject := < Calculus, History, Biology >
 Student := { Name: String, Enrollments: List(Course) }
 Teacher := { Name: String, Subject: Subject }
-Course  := ( Teacher, List(Student) )
+Course  := ( Teacher, List<Student> )
 ```
 
 > **Composite types** **must be defined** **outside of function signatures**. This ensures code clarity and promotes type reuse. Type definitions cannot be created inline within function parameters.
 
 ## Constraints
 
-Constraints, implemented as optimized callbacks to pure functions triggered at runtime during assignment, enable the definition of complex types. Constraint violations raise a `ConstraintError`. Blossom optimizes constraint evaluation via compile-time construction of an internal execution tree.
+Blossom allows you to use functions to define type constraints.
+That means that every time an assigment is made, the constraint functions are executed and the assigned value is validated.
 
-#### Syntax
+Type constraints are anonymous functions with the `Constraint` schema.
 
 ```
-TypeName := BaseType -> ConstraintExpression
+Constraint := t <> t : Bool
 ```
+
+You can implement them using the `&>` operator.
+
+If, for some reason any of the constraints is violated, a `ConstraintError` is thrown.
 
 #### Example
 
 ```
-PositiveInteger := Integer -> LargerThan(0)
-Age := Integer -> LargerThan(0) & LowerThan(150)
-Email := String -> IsEmail
-```
-
-You can also add constraints to composite collection types:
-
-```
-Fruits := List(String) -> NotEmpty 
-Coordinates := (Float, Float, Float) -> LargerThan(0.0)
+Email
+  := String
+  &> v -> v != ""
+  &> v -> !Regex.Validate(v, EMAIL_REGEX)
 ```
