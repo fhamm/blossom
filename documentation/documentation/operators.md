@@ -51,23 +51,24 @@ These operators perform boolean logic and comparisons.
 
 These operators are used for type/variable declaration and assignment.
 
-<table><thead><tr><th>Operator</th><th width="230">Description</th><th>Example</th></tr></thead><tbody><tr><td><code>:</code></td><td>Type explicitation</td><td><code>name: String</code></td></tr><tr><td><code>=</code></td><td>Value assignment</td><td><code>x: Integer = 10</code></td></tr><tr><td><code>:=</code></td><td>Type assignment</td><td><code>FloatList := List(Float)</code></td></tr><tr><td><code>:></code></td><td>Schema assignment</td><td><code>Transformation :> (Integer): Integer</code></td></tr></tbody></table>
+<table><thead><tr><th>Operator</th><th width="230">Description</th><th>Example</th></tr></thead><tbody><tr><td><code>:</code></td><td>Type explicitation</td><td><code>name: String</code></td></tr><tr><td><code>=</code></td><td>Value assignment</td><td><code>x: Int = 10</code></td></tr><tr><td><code>:=</code></td><td>Type assignment</td><td><code>FloatList := List(Float)</code></td></tr><tr><td><code>:></code></td><td>Schema assignment</td><td><code>Transformation :> (Int) : Int</code></td></tr><tr><td><code>&#x26;></code></td><td>Type constraint</td><td><code>NonEmptyString := String &#x26;> v -> v != ""</code></td></tr></tbody></table>
 
 ## Collections
 
 This section covers operators related to collections (like lists, tuples or records).
 
-<table data-full-width="false"><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>...</code></td><td>Spread</td><td><code>newList: List(Integer) = [...oldList, 4, 5]</code></td></tr></tbody></table>
+<table data-full-width="false"><thead><tr><th>Operator</th><th>Description</th><th>Example</th></tr></thead><tbody><tr><td><code>...</code></td><td>Spread</td><td><code>newList: List(Int) = [...oldList, 4, 5]</code></td></tr></tbody></table>
 
 ## Pattern matching
 
 These operators are used for building pattern matching flows.
 
-| Element / Keyword | Description                                                                               |
-| ----------------- | ----------------------------------------------------------------------------------------- |
-| `match`           | Begins a pattern matching expression.                                                     |
-| `_`               | The wildcard pattern, matches any value. Used as the default case in `match` expressions. |
-| `when`            | Used to add conditions to patterns.                                                       |
+| Element / Keyword  | Description                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------- |
+| `match`            | Begins a pattern matching expression.                                                     |
+| `_`                | The wildcard pattern, matches any value. Used as the default case in `match` expressions. |
+| `when`             | Used to add conditions to patterns.                                                       |
+| `[ head \| tail ]` | Matches the head & tail of a compatible collection type.                                  |
 
 ## Pipeline
 
