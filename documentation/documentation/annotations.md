@@ -73,6 +73,17 @@ Add(x: Integer, y: Integer): Integer -> {
 }
 ```
 
+You can also optionally use only select functions or types from a module.
+
+#### Example
+
+```
+@module HelloWorld
+@using Standard.IO::(PrintLine)
+
+Main -> { PrintLine("Hello World!") }
+```
+
 ## @pure
 
 The `@pure` annotation tags a function to be compiled as a [_pure function_](functions.md#pure-functions).
