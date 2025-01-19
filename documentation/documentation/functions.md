@@ -161,7 +161,7 @@ Add(1, 1)        // 2
 
 **Valid** because:
 1. ✅ Both arguments are integers (`Int`), so `t` resolves to `Int`;
-2. ✅ The `+` operator is defined for the `Int` type, and thus compatible with the implementation;
+2. ✅ The `+` operator is defined for the `Int` type, and thus compatible with the implementation.
 
 ---
 
@@ -171,7 +171,7 @@ Add(0.5, 0.5)    // 1.0
 
 **Valid** because:
 1. ✅ Both arguments are floating-point numbers (`Float`), so `t` resolves to `Float`;
-2. ✅ The `+` operator is defined for the `Float` type, and thus compatible with the implementation;
+2. ✅ The `+` operator is defined for the `Float` type, and thus compatible with the implementation.
 
 ---
 
@@ -181,7 +181,7 @@ Add(None, None)  // TemplateError
 
 **Invalid** because:
 1. ✅ Both arguments are `None`, so `t` resolves to `None`;
-2. 🚫 The `+` operator is not defined for the `None` type, making the implementation incompatible with the rendered type;
+2. 🚫 The `+` operator is not defined for the `None` type, making the implementation incompatible with the rendered type.
 
 ---
 
@@ -191,21 +191,33 @@ Add(1, 0.5)      // TemplateError
 
 **Invalid** because:
 1. 🚫 Arguments have different types (`Int` and `Float`), which violates the template;
-2. 🚫 The `+` operator is not compatible with different types;
+2. 🚫 The `+` operator is not compatible with different types.
 
 ## Schemas
 
-Function schemas are
+Function schemas allow the creation of function templates within Blossom, promoting reusability
+with type safety. Function schemas are defined using the `:>` operator.
 
+#### Example
+```
+Adder :> (Int, Int) : Int
 
-## Higher-order functions
+Add :: Adder<x, y> -> x + y
+```
+
+Schemas also enable the definition of anonymous functions within blossom.
+
+## Higher-order functions & Anonymous functions
 
 Conceptually, a higher-order function is a function that does at least one of the following:
 * Takes one or more functions as parameters;
 * Returns a function as its result.
 
-A classical example of a higher-order function is the `Map` function, which receives a function
-as one of its parameters in order to recursively map the values in a list.
+Higher-order functions often work in conjunction with anonymous functions - functions
+with a temporary lifespan that are defined inline where they're used.
+
+A classic example is the `Map` function, which takes a transformation
+function as a parameter to process each element in a list:
 
 #### Example
 
@@ -221,64 +233,66 @@ Map
     }
   }
 
-DoubleNumbers :: (numbers: List<Int>) : List<Int> -> Map(numbers, n -> n * 2 )
+DoubleNumbers
+  :: (numbers: List<Int>) : List<Int>
+  -> Map(numbers, Mapper<n> -> n * 2 )
 ```
 
+In Blossom, anonymous functions must be defined using a schema (like `Mapper<Int>` above). This explicit typing serves two purposes:
+1. Makes the function's contract immediately visible;
+2. Helps developers understand the purpose of the anonymous function without checking the parent function's signature
 
-> **Function schemas** **must be defined** **outside of function signatures**. This ensures code clarity and promotes type reuse. Type definitions cannot be created inline within function parameters.
+> **Note**: Function schemas, like composite types, must be defined outside of function signatures. This ensures code clarity and promotes type reuse. Type definitions cannot be created inline within function parameters.
 
+## Pure Functions
 
-## Pure Functions (deprecated, optimization is automatic)
+Blossom's compiler automatically detects pure functions and applies optimizations accordingly.
+A function is considered pure if it satisfies specific requirements, enabling the compiler to perform various optimizations and static analysis.
 
-To enable compiler optimizations based on function purity, Blossom provides the `@pure` annotation. Marking a function as `@pure` enables optimizations and static analysis that can improve performance and help catch potential bugs. However, it's crucial that functions marked with `@pure` adhere to specific requirements. Violating these requirements will result in a compiler error.
+#### Requirements for Purity
 
-#### Requirements
+The compiler considers a function pure when it satisfies these conditions:
 
-A function annotated with `@pure` _must_ satisfy the following conditions:
+1. **Referential transparency:** Given the same input arguments, the function must always produce the same output. The function's result should depend only on its input parameters.
 
-1. **Referential transparency:** Given the same input arguments, the function _must always_ produce the same output. The function's result should depend _only_ on its input parameters and not on any external state (global variables, mutable data structures, etc.).
-2. **No side effects:** The function _must not_ cause any observable changes to the program's state outside of its own scope. This means it _must not_:
-   * Modify global variables or mutable data structures passed as arguments.
-   * Perform I/O operations (e.g., printing to the console, reading from files, network requests).
-   * Throw exceptions or errors (unless those errors are handled internally and do not escape the function).
-   * Call other functions that have side effects (unless those functions are also marked `@pure` and correctly adhere to these rules).
-3. **Call Tree analysis:** The compiler performs a static analysis of the function's call tree. This means it examines all functions called directly or indirectly from the `@pure` function. _Every function within this call tree must also be `@pure` and adhere to these same requirements._ If the compiler detects a call to a non-`@pure` function within the call tree of a `@pure` function, a compiler error will be issued.
+2. **No side effects:** The function must not cause any observable changes to the program's state outside of its own scope. This means it must not:
+   * Modify global variables or mutable data structures
+   * Perform I/O operations
+   * Throw unhandled exceptions
+   * Call functions that have side effects
 
 #### Examples
 
-**Correctly** annotated `@pure` functions:
+**Pure** functions:
+```blossom
+Add(x: Int, y: Int): Int -> x + y
 
-```
-@pure
-Add(x: Int, y: Int): Int -> { x + y }
+Multiply(x: Int, y: Int): Int -> x * y
 
-@pure
-Multiply(x: Int, y: Int): Int -> { x * y }
-
-@pure
 Calculate(x: Int, y: Int): Int -> {
-    Add(Multiply(x, x), Multiply(y, y)) // Calls other @pure functions
+    Add(Multiply(x, x), Multiply(y, y))
 }
 ```
 
-In this example, `Add`, `Multiply`, and `Calculate` are all correctly marked as `@pure` because they satisfy all the requirements. `Calculate` depends on `Add` and `Multiply` which are also `@pure`.
+These functions are automatically detected as pure because they only depend on their inputs and have no side effects.
 
-**Incorrectly** annotated `@pure` function:
-
-```
-@pure
+**Impure** function:
+```blossom
 LogAndAdd(x: Int, y: Int): Int -> {
     Log.Info("Adding {{ x }} and {{ y }}")
     x + y
 }
 ```
 
-This example would result in a compiler error because `Log.Info` is assumed to perform I/O (a side effect), violating the "no side effects" requirement.
+This function is detected as impure because it performs I/O through `Log.Info`.
 
 #### Benefits
 
-* **Compiler optimizations:** The compiler can perform aggressive optimizations, such as constant folding, common subexpression elimination, and memoization on `@pure` functions.
-* **Static analysis:** The compiler can perform static analysis to detect potential bugs related to side effects and data dependencies.
-* **Improved code clarity:** Marking functions as `@pure` clearly communicates their intended behavior to other developers.
+When the compiler identifies a function as pure, it automatically enables:
+* Memoization
+* Constant folding
+* Common subexpression elimination
+* Other optimizations specific to pure functions
 
-By adhering to these requirements and using the `@pure` annotation correctly, you can leverage Blossom's compiler to write more efficient, reliable and maintainable code.
+These optimizations happen automatically without requiring explicit annotations, making the
+code cleaner while maintaining all the benefits of pure function optimization.
