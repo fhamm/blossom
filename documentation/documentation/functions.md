@@ -156,42 +156,42 @@ The following examples illustrate how type templating resolves different scenari
 ---
 
 ```blossom
-Add(1, 1)        // 2
+Add(1, 1)
 ```
 
 **Valid** because:
-1. ✅ Both arguments are integers (`Int`), so `t` resolves to `Int`;
-2. ✅ The `+` operator is defined for the `Int` type, and thus compatible with the implementation.
+1. Both arguments are integers (`Int`), so `t` resolves to `Int`;
+2. The `+` operator is defined for the `Int` type, and thus compatible with the implementation.
 
 ---
 
 ```blossom
-Add(0.5, 0.5)    // 1.0
+Add(0.5, 0.5)
 ```
 
 **Valid** because:
-1. ✅ Both arguments are floating-point numbers (`Float`), so `t` resolves to `Float`;
-2. ✅ The `+` operator is defined for the `Float` type, and thus compatible with the implementation.
+1. Both arguments are floating-point numbers (`Float`), so `t` resolves to `Float`;
+2. The `+` operator is defined for the `Float` type, and thus compatible with the implementation.
 
 ---
 
 ```blossom
-Add(None, None)  // TemplateError
+Add(None, None)
 ```
 
 **Invalid** because:
-1. ✅ Both arguments are `None`, so `t` resolves to `None`;
-2. 🚫 The `+` operator is not defined for the `None` type, making the implementation incompatible with the rendered type.
+1. Both arguments are `None`, so `t` resolves to `None`;
+2. The `+` operator is not defined for the `None` type, making the implementation incompatible with the rendered type.
 
 ---
 
 ```blossom
-Add(1, 0.5)      // TemplateError
+Add(1, 0.5)
 ```
 
 **Invalid** because:
-1. 🚫 Arguments have different types (`Int` and `Float`), which violates the template;
-2. 🚫 The `+` operator is not compatible with different types.
+1. Arguments have different types (`Int` and `Float`), which violates the template;
+2. The `+` operator is not compatible with different types.
 
 ## Schemas
 
