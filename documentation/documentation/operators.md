@@ -51,7 +51,7 @@ These operators perform boolean logic and comparisons.
 
 These operators are used for type/variable declaration and assignment.
 
-<table><thead><tr><th>Operator</th><th width="230">Description</th><th>Example</th></tr></thead><tbody><tr><td><code>:</code></td><td>Type explicitation</td><td><code>name: String</code></td></tr><tr><td><code>=</code></td><td>Value assignment</td><td><code>x: Int = 10</code></td></tr><tr><td><code>:=</code></td><td>Type assignment</td><td><code>FloatList := List(Float)</code></td></tr><tr><td><code>:></code></td><td>Schema assignment</td><td><code>Transformation :> (Int) : Int</code></td></tr><tr><td><code>&#x26;></code></td><td>Type constraint</td><td><code>NonEmptyString := String &#x26;> v -> v != ""</code></td></tr></tbody></table>
+<table><thead><tr><th>Operator</th><th width="230">Description</th><th>Example</th></tr></thead><tbody><tr><td><code>:</code></td><td>Type explicitation</td><td><code>name: String</code></td></tr><tr><td><code>=</code></td><td>Value assignment</td><td><code>x: Int = 10</code></td></tr><tr><td><code>:=</code></td><td>Type assignment</td><td><code>FloatList := List(Float)</code></td></tr><tr><td><code>:></code></td><td>Schema assignment</td><td><code>Transformation :> (Int) : Int</code></td></tr><tr><td><code>&#x26;></code></td><td>Type constraint</td><td><code>NonEmptyString := String &#x26;> Constraint&#x3C;v> -> v != ""</code></td></tr></tbody></table>
 
 ## Collections
 
