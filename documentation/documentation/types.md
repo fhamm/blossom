@@ -23,17 +23,17 @@ Besides immutability, **empty** **initializations** **are also** **disallowed**.
 
 The primitive types are the bread & butter of the Blossom typing system.
 
-| Name        | Example(s)                  |
-| ----------- | --------------------------- |
-| **Bool**    | `True`, `False`             |
-| **Int**     | `1517`, `301`, `-127`, `0`  |
-| **Float**   | `3.14`, `-1.67`, `1.24e-10` |
-| **String**  | `"Blossom"`                 |
-| **Unit**    | `None`, `Unit`              |
+| Name       | Example(s)                  |
+| ---------- | --------------------------- |
+| **Bool**   | `True`, `False`             |
+| **Int**    | `1517`, `301`, `-127`, `0`  |
+| **Float**  | `3.14`, `-1.67`, `1.24e-10` |
+| **String** | `"Blossom"`                 |
+| **Unit**   | `None`, `Unit`              |
 
 ## Collections
 
-Blossom provides four fundamental data structures for organizing and manipulating data.&#x20;
+Blossom provides four fundamental data structures for organizing and manipulating data.
 
 As with all values in Blossom, collections are **immutable**. Consequently, operations on collections result in the creation of new collections, unlike the in-place modification common in other languages.
 
@@ -168,8 +168,7 @@ Course  := ( Teacher, List<Student> )
 
 ## Constraints
 
-Blossom allows you to use functions to define type constraints.
-That means that every time an assigment is made, the constraint functions are executed and the assigned value is validated.
+Blossom allows you to use functions to define type constraints. That means that every time an assigment is made, the constraint functions are executed and the assigned value is validated.
 
 Type constraints are anonymous functions with the `Constraint` schema.
 
@@ -186,6 +185,6 @@ If, for some reason any of the constraints is violated, a `ConstraintError` is t
 ```
 Email
   := String
-  &> v -> v != ""
-  &> v -> !Regex.Validate(v, EMAIL_REGEX)
+  &> Constraint<v> -> v != ""
+  &> Constraint<v> -> !Regex.Validate(v, EMAIL_REGEX)
 ```
