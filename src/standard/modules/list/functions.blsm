@@ -1,7 +1,7 @@
 @module List
 
-Mapper := t <> t : t
-Folder := t <> (t, t) : t
+Mapper :> t <> t : t
+Folder :> t <> (t, t) : t
 
 +Map
     :: t <> (list: List<t>, fn: Mapper<t>) : List<t>
