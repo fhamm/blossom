@@ -79,19 +79,8 @@ You can also optionally use only select functions or types from a module.
 
 ```
 @module HelloWorld
-@using Standard.IO::(PrintLine)
+@using Math.SquareRoot
+@using IO.[LogInfo, LogError]
 
-Main -> { PrintLine("Hello World!") }
+Main -> { LogInfo("Hello World!") }
 ```
-
-## @pure
-
-The `@pure` annotation tags a function to be compiled as a [_pure function_](functions.md#pure-functions).
-
-#### Example
-
-```
-@pure 
-Add(x: Integer, y: Integer): Integer -> { x + y }
-```
-
