@@ -50,11 +50,11 @@ Where `ModuleName` is a literal representing the name of the module (which must 
 @import MyMath
 @import DataUtils as Data
 
-Main(): String -> {
+Main :: () : String -> {
     result1: Integer = MyMath.Add(5, 3)            // Accessing a function from MyMath
     result2: Integer = MyMath.Subtract(10, 4)      // Accessing another function from MyMath
     result3: String = Data.FormatData("some data") // Accessing a function from DataUtils via alias
-    "{{result1}}, {{result2}}, {{result3}}"
+    "{result1}, {result2}, {result3}"
 }
 ```
 
@@ -68,7 +68,7 @@ The `@using` annotation imports a module and makes its public entities available
 @module Calculator
 @using Math
 
-Add(x: Integer, y: Integer): Integer -> {
+Add :: (x: Integer, y: Integer) : Integer -> {
     Sin(x) + Cos(y)  // Can use Sin instead of Math.Sin
 }
 ```
@@ -78,9 +78,6 @@ You can also optionally use only select functions or types from a module.
 #### Example
 
 ```
-@module HelloWorld
 @using Math.SquareRoot
-@using IO.[LogInfo, LogError]
-
-Main -> { LogInfo("Hello World!") }
+@using IO.(LogInfo, LogError)
 ```

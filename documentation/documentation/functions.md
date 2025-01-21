@@ -40,7 +40,7 @@ HelloWorld -> Log.Info("Hello World!")
 `PrintName` has the `name` (`String`) argument, returns `Unit` and throws no errors.
 
 ```
-PrintName :: (name: String) -> Log.Info("My name is {{ name }}")
+PrintName :: (name: String) -> Log.Info("My name is {name}")
 ```
 
 `Add` has `(x: Int, y: Int)` as its arguments, returns an `Int` and throws no errors.
@@ -53,10 +53,10 @@ Add :: (x: Int, y: Int): Int -> x + y
 
 ```
 Divide
-    :: (x: Float, y: Float) : Float ! DivisionError
+    :: (x: Float, y: Float) : Float ! @DivisionByZero
     -> {
       match (x, y) -> {
-        (_, 0) -> throw DivisionByZero
+        (_, 0) -> throw @DivisionByZero
         (x, y) -> x / y
       }
     }
@@ -68,10 +68,10 @@ Divide
 
 ```
 DivideWithRemainder
-    :: (dividend: Int, divisor: Int) : (Int, Int) ! DivisionError
+    :: (dividend: Int, divisor: Int) : (Int, Int) ! @DivisionByZero
     -> {
       match divisor -> {
-          0 -> throw DivisionByZero
+          0 -> throw @DivisionByZero
           _ -> (dividend / divisor, dividend % divisor)
       }
     }
@@ -82,12 +82,12 @@ DivideWithRemainder
 
 ```
 CalculateArea
-    :: (width: Float, height: Float) : Float ! AreaError
+    :: (width: Float, height: Float) : Float ! @(ZeroAreaError, NegativeSideError)
     -> {
       match (width, height) -> {
-        (w, h) where (w < 0 | h < 0) -> throw NegativeSideError
-        (0, _) -> throw ZeroAreaError
-        (_, 0) -> throw ZeroAreaError
+        (w, h) where (w < 0 | h < 0) -> throw @NegativeSideError
+        (0, _) -> throw @ZeroAreaError
+        (_, 0) -> throw @ZeroAreaError
         (w, h) -> w * h
       }
     }
@@ -121,7 +121,7 @@ Chaining function calls with the pipeline operator and handling possible errors 
 
 ```
 ProcessUser
-    :: (user: User) : ProcessedUser ! ProcessingError
+    :: (user: User) : ProcessedUser ! @(ValidationError, ProcessingError)
     -> {
       user
       |> Validate
@@ -265,11 +265,11 @@ The compiler considers a function pure when it satisfies these conditions:
 
 **Pure** functions:
 ```blossom
-Add(x: Int, y: Int): Int -> x + y
+Add :: (x: Int, y: Int) : Int -> x + y
 
-Multiply(x: Int, y: Int): Int -> x * y
+Multiply :: (x: Int, y: Int) : Int -> x * y
 
-Calculate(x: Int, y: Int): Int -> {
+Calculate :: (x: Int, y: Int) : Int -> {
     Add(Multiply(x, x), Multiply(y, y))
 }
 ```
@@ -278,8 +278,8 @@ These functions are automatically detected as pure because they only depend on t
 
 **Impure** function:
 ```blossom
-LogAndAdd(x: Int, y: Int): Int -> {
-    Log.Info("Adding {{ x }} and {{ y }}")
+LogAndAdd :: (x: Int, y: Int) : Int -> {
+    Log.Info("Adding { x } and { y }")
     x + y
 }
 ```
