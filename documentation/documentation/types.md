@@ -141,7 +141,8 @@ Constraints are expressions that must evaluate to a `Bool` value.
 Every time a value is assigned to a constrained type, its constraints are validated in order.
 If any constraint evaluates to `False`, a `ConstraintError` is thrown.
 
-> Constraints are validated in the order they are defined. The type name is used within each constraint block to reference the value being validated.
+Constraints are validated in the order they are defined.
+**The type name is used within each constraint block to reference the value being validated.**
 
 #### Email
 ```blossom
