@@ -46,7 +46,7 @@ PrintName :: (name: String) -> Log.Info("My name is {name}")
 `Add` has `(x: Int, y: Int)` as its arguments, returns an `Int` and throws no errors.
 
 ```
-Add :: (x: Int, y: Int): Int -> x + y
+Add :: (x: Int, y: Int) : Int -> x + y
 ```
 
 `Divide` has `(x: Float, y: Float)` as its arguments, returns a `Float` and throws `DivisionError` errors.
@@ -105,7 +105,7 @@ Chaining function calls **without** using the pipeline operator.
 
 ```
 IncrementAndDouble
-  :: (x: Int): Int
+  :: (x: Int) : Int
   -> { Double(Increment(x)) }
 ```
 
@@ -113,7 +113,7 @@ Chaining function calls **with** the pipeline operator.
 
 ```
 IncrementAndDouble
-  :: (x: Int): Int
+  :: (x: Int) : Int
   -> { x |> Increment |> Double }
 ```
 
