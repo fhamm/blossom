@@ -113,8 +113,8 @@ Optional types explicitly handle the presence or absence of a value.
 ```blossom
 FindUser :: (id: String) : Optional<User> -> {
     match Database.Query(id) -> {
-        None       => None
-        user: User => user
+        None         => None
+        Some(user)   => user
     }
 }
 ```
