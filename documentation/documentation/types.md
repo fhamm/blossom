@@ -143,8 +143,6 @@ If any constraint evaluates to `False`, a `ConstraintError` is thrown.
 
 > Constraints are validated in the order they are defined. The type name is used within each constraint block to reference the value being validated.
 
-### String Validation
-
 #### Email
 ```blossom
 Email := String
@@ -172,8 +170,6 @@ Password := String
     &> String.HasSpecialChar(Password)
 ```
 
-### Record
-
 #### Rectangle
 
 ```blossom
@@ -183,8 +179,6 @@ Rectangle := { Width: Float, Height: Float }
     &> Rectangle.Width <= 1000
     &> Rectangle.Height <= 1000
 ```
-
-### Collection Constraints
 
 #### Generic List
 ```blossom
