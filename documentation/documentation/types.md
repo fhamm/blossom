@@ -62,18 +62,6 @@ Lists are homogeneous collections of elements.
 
 ```blossom
 Numbers: List<Int> = [1, 2, 3, 4, 5]
-
-Average
-  :: (values: List<Float>) : Float ! @EmptyListError
-  ->  {
-      match List.Length(values) -> {
-        0 => throw @EmptyListError
-        length: Int => {
-            sum: Float = List.Fold(values, 0, Folder<acc, n> -> acc + n)
-            sum / Float.From(length)
-        }
-      }
-  }
 ```
 
 ### Sets
