@@ -71,7 +71,7 @@ blossom build
 blossom start
 ```
 
-5. Congratulations!
+5. 🎆
 ```
 Blossom (HelloWorld.Main) > Hello, World!
 ```
