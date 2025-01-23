@@ -43,9 +43,9 @@ DatabaseError := @(
 // Pattern matching with molecules
 GetColorName :: (color: Colors) : String -> {
     match color -> {
-        Colors.Red -> "Red"
-        Colors.Green -> "Green"
-        Colors.Blue -> "Blue"
+        Colors.Red   => "Red"
+        Colors.Green => "Green"
+        Colors.Blue  => "Blue"
     }
 }
 ```
@@ -67,8 +67,8 @@ Average
   :: (values: List<Float>) : Float ! @EmptyListError
   ->  {
       match List.Length(values) -> {
-        0 -> throw @EmptyListError
-        length: Int -> {
+        0 => throw @EmptyListError
+        length: Int => {
             sum: Float = List.Fold(values, 0, Folder<acc, n> -> acc + n)
             sum / Float.From(length)
         }
@@ -101,8 +101,8 @@ GetScore
     :: (scores: Map<String, Int>, name: String) : Int ! @KeyNotFoundError
     -> {
         match Map.Get(scores, name) -> {
-            None -> throw @KeyNotFoundError
-            Some(score) -> score
+            None => throw @KeyNotFoundError
+            Some(score) => score
         }
     }
 ```
@@ -144,16 +144,16 @@ Optional types explicitly handle the presence or absence of a value.
 ```blossom
 FindUser :: (id: String) : Optional<User> -> {
     match Database.Query(id) -> {
-        None -> None
-        user: User -> user
+        None       => None
+        user: User => user
     }
 }
 
 // Pattern matching with Optional
 DisplayUser :: (maybeUser: Optional<User>) : String -> {
     match maybeUser -> {
-        None -> "User not found"
-        Some(user) -> "Found user: {user.name}"
+        None       => "User not found"
+        Some(user) => "Found user: {user.name}"
     }
 }
 ```
@@ -180,46 +180,62 @@ Constraints are expressions that must evaluate to a `Bool` value.
 Every time a value is assigned to a constrained type, its constraints are validated in order.
 If any constraint evaluates to `False`, a `ConstraintError` is thrown.
 
+> Constraints are validated in the order they are defined. The type name is used within each constraint block to reference the value being validated.
+
+### String Validation
+
+#### Email
 ```blossom
-// String with email validation
 Email := String
     &> String.NotEmpty(Email)
     &> String.Length(Email) <= 255
     &> Regex.Validate(Email, EMAIL_REGEX)
+```
 
-// Username with multiple validations
+#### Username
+```blossom
 Username := String
     &> String.NotEmpty(Username)
     &> String.Length(Username) >= 3
     &> String.Length(Username) <= 20
     &> Regex.OnlyAllows(Username, ~"[a-zA-Z0-9_-]")
+```
 
-// Password with security requirements
+#### Password
+```blossom
 Password := String
     &> String.Length(Password) >= 8
     &> String.HasUpperCase(Password)
     &> String.HasLowerCase(Password)
     &> String.HasNumber(Password)
     &> String.HasSpecialChar(Password)
+```
 
-// Record with multiple validations
+### Record
+
+#### Rectangle
+
+```blossom
 Rectangle := { Width: Float, Height: Float }
     &> Rectangle.Width > 0
     &> Rectangle.Height > 0
     &> Rectangle.Width <= 1000
     &> Rectangle.Height <= 1000
+```
 
-// Generic list constraints
+### Collection Constraints
+
+#### Generic List
+```blossom
 NonEmptyList := List<T>
     &> List.Length(NonEmptyList) > 0
     &> List.Length(NonEmptyList) <= 1000
+```
 
-// List of numbers with range validation
+#### Typed List with range validation
+```blossom
 ValidScores := List<Int>
     &> List.Length(ValidScores) > 0
     &> List.All(ValidScores, n -> n >= 0)
     &> List.All(ValidScores, n -> n <= 100)
 ```
-
-Constraints are validated in the order they are defined.
-The type name is used within each constraint block to reference the value being validated.

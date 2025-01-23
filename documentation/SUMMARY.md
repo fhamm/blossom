@@ -1,6 +1,6 @@
 # Table of contents
 
-* [Home](README.md)
+* [Blossom](README.md)
 
 ## Documentation
 

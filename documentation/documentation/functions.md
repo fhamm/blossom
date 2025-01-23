@@ -56,8 +56,8 @@ Divide
     :: (x: Float, y: Float) : Float ! @DivisionByZero
     -> {
       match (x, y) -> {
-        (_, 0) -> throw @DivisionByZero
-        (x, y) -> x / y
+        (_, 0) => throw @DivisionByZero
+        (x, y) => x / y
       }
     }
 ```
@@ -71,8 +71,8 @@ DivideWithRemainder
     :: (dividend: Int, divisor: Int) : (Int, Int) ! @DivisionByZero
     -> {
       match divisor -> {
-          0 -> throw @DivisionByZero
-          _ -> (dividend / divisor, dividend % divisor)
+          0 => throw @DivisionByZero
+          _ => (dividend / divisor, dividend % divisor)
       }
     }
 
@@ -228,8 +228,8 @@ Map
   :: t <> (list: List<t>, fn: Mapper<t>) : List<t>
   -> {
     match list -> {
-        [] -> []
-        [x, ...xs] -> [fn(x), ...Map(xs, fn)]
+        [] => []
+        [x, ...xs] => [fn(x), ...Map(xs, fn)]
     }
   }
 

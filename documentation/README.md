@@ -13,43 +13,100 @@ layout:
     visible: true
 ---
 
-# Home
+# Blossom
 
-## Introduction
+Blossom is a modern, functional programming language that emphasizes code clarity, safety, and maintainability. Built on the robust Erlang VM, it combines the reliability of battle-tested infrastructure with an elegant, developer-friendly syntax.
 
-_Do we really need another programming language?_
+## Do we need *really* another programming language?
 
-I've also asked myself that question a million times - but the truth is that there is no perfect programming language - at least not for my needs. My goal with Blossom is to create a language which enables developers to create projects that grow as beautifully as a flower does - hence the name. This is achieved by adhering to certain core principles:
+It's a fair question - one I've asked myself countless times during Blossom's development. The truth is, there is no perfect programming language, at least not for every need. Blossom was born from a specific vision: to create a language where codebases can grow as beautifully and naturally as a flower does - hence the name.
 
-* **Immutability** - Once declared, variables cannot be modified. This ensures predictable states, eliminates race conditions, and enables safe concurrent code.
-* **Strong & explicit typing** - Every value must have a clear, compile-time verified type. No implicit type conversions are allowed.
-* **Explicit error handling** - Errors must be explicitly handled or propagated. No silent failures or hidden error states.
-* **Functional** - Encourages pure functions and immutable data structures for better tests and maintainability.
+### Key Features
 
-Blossom compiles to Erlang, inheriting the power and stability of the Erlang VM to deliver exceptional concurrency and fault tolerance within a clean and elegant codebase
+- **Immutable by default**: All variables are immutable, ensuring predictable state management and eliminating common concurrency issues.
+- **Strong type system**: Comprehensive static typing with powerful type inference helps catch errors at compile time.
+- **Explicit error handling**: Function signatures declare potential errors that must be explicitly handled by callers, while unexpected errors follow Erlang's "let it crash" philosophy for fault tolerance.
+- **Pattern matching**: Elegant pattern matching syntax for complex data structures and control flow.
+- **Concurrency made simple**: Built on the Erlang VM's actor model for reliable, scalable concurrent systems.
+- **Zero runtime surprises**: What you see is what you get - no implicit conversions or hidden behaviors.
 
-## Installation
+## Quick Start
 
-Installing Blossom is quite straightforward.
+### Installation
 
-If you're on `MacOS`:
-
+**macOS**
 ```bash
 brew install blossom
 ```
 
-If you're on `Linux`:
-
+**Linux**
 ```bash
-curl github.com/fhamm/blossom/install.sh | sh
+curl -fsSL https://blossom-lang.org/install.sh | sh
 ```
 
-## Getting Started
+### Hello, World!
 
-We're excited to have you start using Blossom! Our [documentation](broken-reference) is the best place to begin your journey. It's constantly updated with the latest information and designed to make learning Blossom as easy as it can be.
+1. Initialize a new project using the Blossom CLI.
 
-For issues, bug reports or contributions please visit our GitHub repository. We also have a Discord server in which we aim to build a friendly & active community for Blossom developers.
+```bash
+blossom create .
+```
 
-## Author
+2. Modify the `main.blsm` file.
 
-Blossom was designed & created by Felipe Hamm. He poured all his heart into it!
+```blossom
+%module HelloWorld
+%import IO
+
+Main -> IO.Log("Hello, World!")
+```
+
+3. Build the program.
+```bash
+blossom build
+```
+
+4. Start the program.
+```bash
+blossom start
+```
+
+5. Congratulations!
+```
+Blossom (HelloWorld.Main) > Hello, World!
+```
+
+## Why Blossom?
+
+Modern software development often involves managing complex systems with many moving parts. Blossom was created to help developers build maintainable, reliable applications by:
+
+- Making state changes explicit and trackable;
+- Enforcing compile-time safety without sacrificing productivity;
+- Providing powerful abstractions for handling errors and concurrent operations;
+- Offering a clean, consistent syntax that promotes readability.
+
+## Learning Blossom
+
+- 📚 [Documentation](documentation/types.md) - Comprehensive language guide
+- 🎓 [Examples](examples/) - Real-world code examples
+- 💬 [Discord](https://discord.gg/blossom) - Join our community
+- 🐛 [Issue Tracker](https://github.com/fhamm/blossom/issues) - Report bugs or request features
+
+## Contributing
+
+We welcome contributions! Whether it's:
+
+- Reporting bugs
+- Improving documentation
+- Suggesting new features
+- Contributing code
+
+Please read our [Contributing Guide](CONTRIBUTING.md) to get started.
+
+## License
+
+Blossom is released under the MIT License.
+
+## Credits
+
+Created and maintained by Felipe Hamm. Special thanks to all contributors who have helped shape Blossom into what it is today.
