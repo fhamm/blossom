@@ -231,11 +231,3 @@ NonEmptyList := List<T>
     &> List.Length(NonEmptyList) > 0
     &> List.Length(NonEmptyList) <= 1000
 ```
-
-#### Typed List with range validation
-```blossom
-ValidScores := List<Int>
-    &> List.Length(ValidScores) > 0
-    &> List.All(ValidScores, n -> n >= 0)
-    &> List.All(ValidScores, n -> n <= 100)
-```
