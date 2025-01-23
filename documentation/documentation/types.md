@@ -84,15 +84,6 @@ Scores: Map<String, Int> = [
     "Bob"     => 87,
     "Charlie" => 92
 ]
-
-GetScore
-    :: (scores: Map<String, Int>, name: String) : Int ! @KeyNotFoundError
-    -> {
-        match Map.Get(scores, name) -> {
-            None => throw @KeyNotFoundError
-            Some(score) => score
-        }
-    }
 ```
 
 ### Tuples
@@ -102,12 +93,6 @@ Tuples are fixed-size, heterogeneous, ordered collections of values.
 ```blossom
 Point := (Float, Float)
 Origin: Point = (0.0, 0.0)
-
-Distance(p1: Point, p2: Point) : Float -> {
-    dx: Float = p2[0] - p1[1]
-    dy: Float = p2[0] - p1[1]
-    Math.SquareRoot(dx * dx + dy * dy)
-}
 ```
 
 ### Records
@@ -119,10 +104,6 @@ Person := { Name: String, Age: Int }
 
 alice: Person = { Name: "Alice", Age: 30 }
 bob: Person = { Name: "Bob", Age: 42 }
-
-UpdateAge(person: Person, newAge: Int) : Person -> {
-    { ...person, Age: newAge }
-}
 ```
 
 ### Optional
@@ -134,14 +115,6 @@ FindUser :: (id: String) : Optional<User> -> {
     match Database.Query(id) -> {
         None       => None
         user: User => user
-    }
-}
-
-// Pattern matching with Optional
-DisplayUser :: (maybeUser: Optional<User>) : String -> {
-    match maybeUser -> {
-        None       => "User not found"
-        Some(user) => "Found user: {user.name}"
     }
 }
 ```
