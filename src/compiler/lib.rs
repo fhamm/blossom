@@ -19,7 +19,12 @@ impl Compiler {
     }
 
     pub fn compile(&self) -> Result<(), String> {
+        println!("Starting compilation...");
+        println!("Root path: {}", self.root_path.display());
+
         let sources = SourceFinder::new(&self.config, &self.root_path).find_source_files()?;
+
+        println!("Found {} source files:", sources.len());
 
         for source_path in sources {
             self.compile_file(&source_path)?;

@@ -1,0 +1,5 @@
+%module HelloWorld
+%using IO.PrintLine
+
+
+Main -> PrintLine("Hello World!")

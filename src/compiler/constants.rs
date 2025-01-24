@@ -1,1 +1,1 @@
-pub const BLOSSOM_EXTENSION: &str = "bsm";
+pub const BLOSSOM_EXTENSION: &str = "blsm";

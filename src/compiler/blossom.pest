@@ -3,384 +3,295 @@
 
 // ========= Core Program Structure =========
 
-// A Blossom source file must:
-// 1. Start with @module declaration
-// 2. Follow with @import or @use statements
-// 3. Continue with type definitions and function declarations
 BLOSSOM = {
-    SOI ~ MODULE_DECLARATION ~ (IMPORT_DECLARATION | USING_DECLARATION)* ~ (TYPE_DEFINITION | FUNCTION_DEFINITION | VARIABLE_DEFINITION)* ~ EOI
+    SOI ~ MODULE_DECLARATION ~ (IMPORT_DECLARATION | USING_DECLARATION)* ~ (TYPE_DEFINITION | FUNCTION_DEFINITION | CONSTANT_DEFINITION)* ~ EOI
 }
 
 // ========= Core Language Elements =========
 
-// Skip whitespace and comments during parsing
 WHITESPACE = _{ " " | "\t" | NEWLINE }
 NEWLINE    = _{ "\r\n" | "\n" | "\r" }
 
-// Comments support both single-line and multi-line styles
 COMMENT = _{
     ("//" ~ (!NEWLINE ~ ANY)*)
-  | // Single-line comment
-  ("/*" ~ (!"*/" ~ ANY)* ~ "*/") // Multi-line comment
+  | ("/*" ~ (!"*/" ~ ANY)* ~ "*/")
 }
 
-// Valid identifier: starts with letter, followed by letters/numbers/_
 IDENTIFIER = @{ ASCII_ALPHA ~ (ASCII_ALPHANUMERIC | "_")* }
-
-// ========= Decorators and Annotations =========
-
-// Decorators modify the behavior or visibility of declarations
-// Examples: @public, @pure
-DECORATOR = {
-    "@public"
-  | "@private"
-  | "@pure"
-}
-
-DECORATOR_LIST = { DECORATOR* }
 
 // ========= Module System =========
 
-// Module path identifier
-// Example: Standard.IO
+MODULE_DECLARATION = { "%module" ~ IDENTIFIER }
+
 MODULE_PATH = { IDENTIFIER ~ ("." ~ IDENTIFIER)* }
 
-// Module declaration defines the current module's name
-// Example: @module GameEngine
-MODULE_DECLARATION = { "@module" ~ IDENTIFIER }
+IMPORT_DECLARATION = { "%import" ~ MODULE_PATH ~ ("as" ~ IDENTIFIER)? }
 
-// Import brings in external modules, optionally with aliases
-// Examples:
-// @import HTTP
-// @import Logger as L
-IMPORT_DECLARATION = {
-    "@import" ~ MODULE_PATH ~ ("as" ~ IDENTIFIER)?
+USING_DECLARATION = {
+    "%using" ~ MODULE_PATH ~ ("." ~ (IDENTIFIER | IMPORT_LIST))?
 }
 
-// Using imports add symbols directly to current scope
-// Example: @using Standard.IO
-USING_DECLARATION = { "@using" ~ MODULE_PATH }
+IMPORT_LIST = {
+    "[" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ "]"
+}
 
-// ========= Types and Type Definitions =========
+// ========= Visibility Modifiers =========
 
-// Built-in primitive types
+VISIBILITY_MODIFIER = { "+" | "-" }
+
+// ========= Types =========
+
 PRIMITIVE_TYPE = {
-    "None"
-  | "Integer"
+    "Bool"
+  | "Int"
   | "Float"
   | "String"
-  | "Boolean"
-  | "Binary"
+  | "Unit"
 }
 
-// Type definition using := operator
-// Examples:
-// Point := (Float, Float)
-// Result := (Success, Error)
 TYPE_DEFINITION = {
-    DECORATOR_LIST ~ IDENTIFIER ~ ":=" ~ BASE_TYPE ~ (("->" ~ CONSTRAINT_EXPRESSION) | WHERE_CLAUSE)?
+    VISIBILITY_MODIFIER? ~ IDENTIFIER ~ ":=" ~ TYPE_EXPRESSION ~ (CONSTRAINT_LIST)?
 }
 
-// Types can be constrained using where clauses
-WHERE_CLAUSE = {
-    "where" ~ CONSTRAINT_EXPRESSION ~ ("," ~ CONSTRAINT_EXPRESSION)*
-}
-
-// Base types without constraints
-BASE_TYPE = {
-    ENUM_DEFINITION
+TYPE_EXPRESSION = {
+    PRIMITIVE_TYPE
   | COLLECTION_TYPE
+  | ATOM_TYPE
+  | MOLECULE_TYPE
+  | SCHEMA_TYPE
   | OPTIONAL_TYPE
-  | PRIMITIVE_TYPE
 }
 
-// Collections: Lists, Tuples, Records
+// Collections
 COLLECTION_TYPE = {
     LIST_TYPE
+  | SET_TYPE
+  | MAP_TYPE
   | TUPLE_TYPE
   | RECORD_TYPE
 }
 
-// ========= Collection Types =========
+LIST_TYPE    = { "List" ~ "<" ~ TYPE_EXPRESSION ~ ">" }
+SET_TYPE     = { "Set" ~ "<" ~ TYPE_EXPRESSION ~ ">" }
+MAP_TYPE     = { "Map" ~ "<" ~ TYPE_EXPRESSION ~ "," ~ TYPE_EXPRESSION ~ ">" }
+TUPLE_TYPE   = { "(" ~ TYPE_EXPRESSION ~ ("," ~ TYPE_EXPRESSION)* ~ ")" }
+RECORD_TYPE  = { "{" ~ RECORD_FIELD ~ ("," ~ RECORD_FIELD)* ~ "}" }
+RECORD_FIELD = { IDENTIFIER ~ ":" ~ TYPE_EXPRESSION }
 
-// List type definition
-// Example: List(Integer)
-LIST_TYPE = { "List" ~ "(" ~ PRIMITIVE_TYPE ~ ")" }
+// Atoms and Molecules
+ATOM_TYPE     = { "@" ~ IDENTIFIER }
+MOLECULE_TYPE = { "@(" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ ")" }
 
-// Tuple type definition
-// Example: (Float, Float)
-TUPLE_TYPE = {
-    "(" ~ PRIMITIVE_TYPE ~ ("," ~ PRIMITIVE_TYPE)* ~ ")"
+// Optional Type
+OPTIONAL_TYPE = { "Optional" ~ "<" ~ TYPE_EXPRESSION ~ ">" }
+
+// Schema Type
+SCHEMA_TYPE   = { IDENTIFIER ~ ":>" ~ FUNCTION_TYPE }
+FUNCTION_TYPE = { "(" ~ TYPE_EXPRESSION ~ ("," ~ TYPE_EXPRESSION)* ~ ")" ~ ":" ~ TYPE_EXPRESSION }
+
+// Constraints
+CONSTRAINT_LIST       = { ("&>" ~ CONSTRAINT_EXPRESSION)+ }
+CONSTRAINT_EXPRESSION = {
+    IDENTIFIER ~ "." ~ IDENTIFIER ~ "(" ~ IDENTIFIER ~ ")"
+  | COMPARISON_EXPRESSION
 }
 
-// Record type definition
-// Example: { name: String, age: Integer }
-RECORD_FIELD = { IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE }
-RECORD_TYPE  = {
-    "{" ~ RECORD_FIELD ~ ("," ~ RECORD_FIELD)* ~ "}"
+// ========= Constants =========
+
+CONSTANT_DEFINITION = {
+    VISIBILITY_MODIFIER? ~ IDENTIFIER ~ ":" ~ TYPE_EXPRESSION ~ "=" ~ LITERAL
 }
 
-// ========= Enum Types =========
+// ========= Functions =========
 
-// Enum variant naming follows PascalCase convention
-ENUM_VARIANT = @{ ASCII_ALPHA_UPPER ~ (ASCII_ALPHANUMERIC | "_")* }
-
-// Enum definition
-// Example: (North, South, East, West)
-ENUM_DEFINITION = {
-    "(" ~ ENUM_VARIANT ~ ("," ~ ENUM_VARIANT)* ~ ")"
-}
-
-// ========= Optional Types =========
-
-// Optional type wraps another type
-// Example: Optional(Integer)
-OPTIONAL_TYPE = {
-    "Optional" ~ "(" ~ (PRIMITIVE_TYPE | LIST_TYPE | TUPLE_TYPE | RECORD_TYPE) ~ ")"
-}
-
-// ========= Function Definitions =========
-
-// Complete function definition with decorators, params, return type, errors
 FUNCTION_DEFINITION = {
-    DECORATOR_LIST ~ IDENTIFIER ~ (PARAMETERS_MULTILINE ~ (":" ~ PRIMITIVE_TYPE)? ~ ERROR_SPEC? ~ "->" | "->") ~ BLOCK
+    VISIBILITY_MODIFIER? ~ IDENTIFIER ~ ("::" ~ FUNCTION_SIGNATURE ~ "->" | "->") ~ (FUNCTION_CALL | BLOCK)
 }
 
-// Multi-line parameter support
-PARAMETERS_MULTILINE = {
-    "(" ~ WHITESPACE* ~ (PARAMETER ~ ("," ~ WHITESPACE* ~ PARAMETER)* ~ ","?)? ~ WHITESPACE* ~ ")"
+FUNCTION_SIGNATURE = {
+    PARAMETERS? ~ (":" ~ TYPE_EXPRESSION)? ~ ERROR_SPEC?
+}
+
+PARAMETERS = {
+    "(" ~ (PARAMETER ~ ("," ~ PARAMETER)*)? ~ ")"
 }
 
 PARAMETER = {
-    WHITESPACE* ~ IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE ~ WHITESPACE*
+    IDENTIFIER ~ ":" ~ TYPE_EXPRESSION
 }
 
-// ========= Error Handling =========
-
-// Error specification for functions
-// Can be single error or tuple of errors
 ERROR_SPEC = {
-    "!" ~ (IDENTIFIER | ERROR_TUPLE)
-}
-
-ERROR_TUPLE = {
-    "(" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ ")"
-}
-
-// Throw expression for error handling
-THROW_EXPRESSION = {
-    "throw" ~ IDENTIFIER ~ "." ~ ENUM_VARIANT
+    "!" ~ ("@" ~ IDENTIFIER | "@(" ~ IDENTIFIER ~ ("," ~ IDENTIFIER)* ~ ")")
 }
 
 // ========= Expressions =========
 
-// Expressions represent computations that produce values
-// Core expression types include:
-// - Literals (42, "hello", True)
-// - Variables (myVar, counter)
-// - Function calls (Calculate(x))
-// - Operations (a + b, !isDone)
-// - Pattern matching (match x -> { ... })
+EXPRESSION = _{
+    PRIMARY_EXPRESSION ~ (BINARY_OPERATOR ~ PRIMARY_EXPRESSION)*
+}
 
-// Base expressions (non-recursive)
-ATOM = {
+PRIMARY_EXPRESSION = {
     LITERAL
   | IDENTIFIER
+  | FUNCTION_CALL
   | MATCH_EXPRESSION
+  | PIPELINE_EXPRESSION
   | THROW_EXPRESSION
   | "(" ~ EXPRESSION ~ ")"
 }
 
-// Main expression rule using pratt parser for operator precedence
-EXPRESSION = {
-    ATOM ~ (INFIX_OPERATOR ~ ATOM)*
+// ========= Pattern Matching =========
+
+MATCH_EXPRESSION = {
+    "match" ~ EXPRESSION ~ "->" ~ "{" ~ (MATCH_ARM ~ ("," ~ MATCH_ARM)*)? ~ "}"
 }
+
+MATCH_ARM = {
+    MATCH_PATTERN ~ ("if" ~ EXPRESSION)? ~ "=>" ~ (EXPRESSION | BLOCK)
+}
+
+MATCH_PATTERN = {
+    LITERAL
+  | "_"
+  | IDENTIFIER
+  | LIST_PATTERN
+  | TUPLE_PATTERN
+  | RECORD_PATTERN
+}
+
+LIST_PATTERN   = { "[" ~ (MATCH_PATTERN ~ ("," ~ MATCH_PATTERN)*)? ~ "]" }
+TUPLE_PATTERN  = { "(" ~ MATCH_PATTERN ~ ("," ~ MATCH_PATTERN)* ~ ")" }
+RECORD_PATTERN = { "{" ~ (IDENTIFIER ~ ":" ~ MATCH_PATTERN) ~ ("," ~ IDENTIFIER ~ ":" ~ MATCH_PATTERN)* ~ "}" }
+
+// ========= Literals =========
+
+LITERAL = {
+    FLOAT_LITERAL
+    | INT_LITERAL
+    | BOOL_LITERAL
+    | STRING_LITERAL
+    | UNIT_LITERAL
+    | COLLECTION_LITERAL
+    | ATOM_LITERAL
+}
+
+BOOL_LITERAL   =  { "True" | "False" }
+INT_LITERAL    = @{ "-"? ~ ASCII_DIGIT+ }
+FLOAT_LITERAL = { ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ }
+STRING_LITERAL = @{ "\"" ~ (STRING_TEMPLATE_EXPR | (!"\"" ~ ANY))* ~ "\"" }
+UNIT_LITERAL   =  { "None" | "Unit" }
+
+COLLECTION_LITERAL = {
+    LIST_LITERAL
+  | SET_LITERAL
+  | MAP_LITERAL
+  | TUPLE_LITERAL
+  | RECORD_LITERAL
+}
+
+LIST_LITERAL   = { "[" ~ (EXPRESSION ~ ("," ~ EXPRESSION)*)? ~ "]" }
+SET_LITERAL    = { "{" ~ (EXPRESSION ~ ("," ~ EXPRESSION)*)? ~ "}" }
+MAP_LITERAL    = { "[" ~ (EXPRESSION ~ "=>" ~ EXPRESSION ~ ("," ~ EXPRESSION ~ "=>" ~ EXPRESSION)*)? ~ "]" }
+TUPLE_LITERAL  = { "(" ~ EXPRESSION ~ ("," ~ EXPRESSION)* ~ ")" }
+RECORD_LITERAL = { "{" ~ (IDENTIFIER ~ ":" ~ EXPRESSION) ~ ("," ~ IDENTIFIER ~ ":" ~ EXPRESSION)* ~ "}" }
+
+ATOM_LITERAL = { "@" ~ IDENTIFIER }
+
+// ========= String Templates =========
+
+STRING_TEMPLATE_EXPR = { "{" ~ EXPRESSION ~ "}" }
 
 // ========= Operators =========
 
-// All operators that can appear between expressions
-INFIX_OPERATOR = _{
-    ARITHMETIC_OPERATOR
-  | LOGICAL_OPERATOR
-  | COMPARISON_OPERATOR
-  | PIPELINE_OPERATOR
-  | ERROR_HANDLER_OPERATOR
-}
-
-// Arithmetic: +, -, *, /, %
-ARITHMETIC_OPERATOR = {
+BINARY_OPERATOR = _{
     "+"
   | "-"
   | "*"
   | "/"
   | "%"
-}
-
-// Logical: &, |, !
-LOGICAL_OPERATOR = {
-    "&"
+  | // Arithmetic
+  "&"
   | "|"
   | "!"
-}
-
-// Comparison: ==, !=, >, <, >=, <=
-COMPARISON_OPERATOR = {
-    "=="
+  | // Boolean
+  "=="
   | "!="
-  | ">="
-  | "<="
   | ">"
   | "<"
+  | ">="
+  | "<="
+  | // Comparison
+  ":"
+  | ":="
+  | ":>"
+  | "&>" // Type/Schema
 }
 
-// Pipeline operators for chaining and error handling
-PIPELINE_OPERATOR      = { "|>" }
-ERROR_HANDLER_OPERATOR = { "!>" }
+// ========= Pipeline =========
 
-// ========= Literals =========
-
-// Base literals (non-recursive)
-BASE_LITERAL = {
-    INTEGER
-  | FLOAT
-  | STRING
-  | BOOLEAN
-  | BINARY_LITERAL
-  | OPTIONAL_VALUE
+PIPELINE_EXPRESSION = {
+    TERM ~ (PIPELINE_STEP)*
 }
 
-// Collection literals
-COLLECTION_LITERAL = {
-    ENUM_VALUE
-  | TUPLE_VALUE
-  | LIST_VALUE
-  | RECORD_VALUE
+PIPELINE_STEP = {
+    STANDARD_PIPE
+  | ERROR_PIPE
 }
 
-// Combined literal rule
-LITERAL = {
-    BASE_LITERAL
-  | COLLECTION_LITERAL
+STANDARD_PIPE = {
+    "|>" ~ EXPRESSION
 }
 
-// String literal (e.g., "hello", "path/to/file")
-STRING = @{
-    STRING_TEMPLATE
-  | ("\"" ~ (!"\"" ~ ANY)* ~ "\"")
+ERROR_PIPE = {
+    "!>" ~ ERROR_HANDLER
 }
 
-// Integer with optional underscores (e.g., 1_000_000)
-INTEGER = @{ "-"? ~ ASCII_DIGIT+ ~ ("_" ~ ASCII_DIGIT+)* }
-
-// Float with optional scientific notation
-FLOAT = @{
-    "-"? ~ ASCII_DIGIT+ ~ "." ~ ASCII_DIGIT+ ~ ("e" ~ ("+" | "-")? ~ ASCII_DIGIT+)?
+ERROR_HANDLER = {
+    "{" ~ ERROR_CASE ~ ("," ~ ERROR_CASE)* ~ "}"
 }
 
-// Binary numbers and byte arrays
-BINARY_DIGIT  =  { "0" | "1" }
-BINARY_NUMBER = @{ "0b" ~ BINARY_DIGIT+ }
-HEX_NUMBER    = @{ "0x" ~ ASCII_HEX_DIGIT+ }
-BYTES         = @{ "#[" ~ ASCII_HEX_DIGIT{2} ~ (" " ~ ASCII_HEX_DIGIT{2})* ~ "]" }
-
-BINARY_LITERAL = {
-    BINARY_NUMBER
-  | HEX_NUMBER
-  | BYTES
+ERROR_CASE = {
+    ATOM_LITERAL ~ "=>" ~ EXPRESSION
 }
 
-// Boolean literals
-BOOLEAN = { "True" | "False" }
-
-// Optional values
-OPTIONAL_VALUE = {
-    "None"
-  | "Some" ~ "(" ~ LITERAL ~ ")"
-}
-
-// ========= Collection Values =========
-
-// Enum value (e.g., Direction.North)
-ENUM_VALUE = {
-    IDENTIFIER ~ "." ~ ENUM_VARIANT
-}
-
-// Tuple value (e.g., (0.0, 0.0))
-TUPLE_VALUE = {
-    "(" ~ LITERAL ~ ("," ~ LITERAL)* ~ ")"
-}
-
-// List value with optional spread operator
-LIST_VALUE = {
-    "[" ~ (SPREAD_OPERATOR | LITERAL)? ~ ("," ~ (SPREAD_OPERATOR | LITERAL))* ~ "]"
-}
-
-// Record value with optional spread
-RECORD_FIELD_VALUE = {
-    IDENTIFIER ~ ":" ~ LITERAL
-}
-
-RECORD_VALUE = {
-    "{" ~ (SPREAD_OPERATOR | RECORD_FIELD_VALUE) ~ ("," ~ (SPREAD_OPERATOR | RECORD_FIELD_VALUE))* ~ "}"
-}
-
-// Spread operator for collections
-SPREAD_OPERATOR = { "..." ~ IDENTIFIER }
-
-// ========= String Templates =========
-
-// String template expression (e.g., "Hello, {{name}}!")
-STRING_TEMPLATE_EXPR = {
-    "{{" ~ (!("}}" | "{{") ~ ANY)* ~ "}}"
-}
-
-STRING_TEMPLATE = @{
-    "\"" ~ (STRING_TEMPLATE_EXPR | (!"\"" ~ ANY))* ~ "\""
-}
-
-// ========= Pattern Matching =========
-
-// Patterns that can appear in match expressions
-MATCH_PATTERN = {
+TERM = {
     LITERAL
-  | // literal pattern
-  "_"
-  | // wildcard pattern
-  (IDENTIFIER ~ ":" ~ PRIMITIVE_TYPE)
-  | // binding pattern
-  "(" ~ MATCH_PATTERN ~ ("," ~ MATCH_PATTERN)* ~ ")" // tuple pattern
+  | IDENTIFIER
+  | FUNCTION_CALL
+  | MATCH_EXPRESSION
+  | THROW_EXPRESSION
+  | "(" ~ EXPRESSION ~ ")"
 }
 
-// Match arms (pattern -> expression)
-MATCH_ARM = {
-    MATCH_PATTERN ~ "->" ~ (EXPRESSION | BLOCK)
+// ========= Error Handling =========
+
+THROW_EXPRESSION = { "throw" ~ ATOM_LITERAL }
+
+// ========= Function Calls =========
+
+FUNCTION_CALL = {
+    IDENTIFIER ~ ("." ~ IDENTIFIER)* ~ "(" ~ (EXPRESSION ~ ("," ~ EXPRESSION)*)? ~ ")"
 }
 
-// Complete match expression
-MATCH_EXPRESSION = {
-    "match" ~ EXPRESSION ~ "->" ~ "{" ~ MATCH_ARM ~ ("," ~ MATCH_ARM)* ~ "}"
-}
+// ========= Block =========
 
-// ========= Variables and Blocks =========
-
-// Variable definition with type and optional initialization
-VARIABLE_DEFINITION = {
-    IDENTIFIER ~ ":" ~ (PRIMITIVE_TYPE | OPTIONAL_TYPE) ~ ("=" ~ (LITERAL | "None"))?
-}
-
-// A block is a sequence of statements with a final expression
 BLOCK = {
-    "{" ~ (VARIABLE_DEFINITION | EXPRESSION)* ~ EXPRESSION? ~ "}"
+    "{" ~ (STATEMENT ~ ";")* ~ EXPRESSION? ~ "}"
 }
 
-// ========= Constraints =========
-
-// Constraint functions for type refinements
-CONSTRAINT_FUNCTION = {
-    IDENTIFIER ~ ("(" ~ LITERAL ~ ")")?
+STATEMENT = {
+    VARIABLE_DEFINITION
+  | EXPRESSION
 }
 
-// Combined constraint expression
-CONSTRAINT_EXPRESSION = {
-    CONSTRAINT_FUNCTION ~ (LOGICAL_OPERATOR ~ CONSTRAINT_FUNCTION)*
+VARIABLE_DEFINITION = {
+    IDENTIFIER ~ ":" ~ TYPE_EXPRESSION ~ "=" ~ EXPRESSION
 }
+
+// ========= Comparison =========
+
+COMPARISON_EXPRESSION = {
+    EXPRESSION ~ COMPARISON_OPERATOR ~ EXPRESSION
+}
+
+COMPARISON_OPERATOR = { "==" | "!=" | ">" | "<" | ">=" | "<=" }

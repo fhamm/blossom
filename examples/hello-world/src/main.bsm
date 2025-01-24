@@ -1,6 +1,0 @@
-@Module HelloWorld
-@Using IO
-
-Main() -> {
-    PrintLine("Hello World!")
-}
